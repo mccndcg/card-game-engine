@@ -1,0 +1,275 @@
+import time
+import config
+from lor_deckcodes import LoRDeck
+import helpers
+
+
+def feedbackGuy(entity, triggerStr):
+    print('_enter feedback guy, trigger >', triggerStr, entity.name)
+    try:
+        for entityListener in director.triggerDirectory[triggerStr]:
+            entityListener.target = entity
+            entityListener.activateCall(triggerStr, activateCall)
+    except KeyError:
+        pass
+
+
+def testing():
+    x = director.createActor({'cardCode': "01PZ056",
+                              'location': 'hand', 'owner': 'self'})
+    {print(k, v) for k, v in director.triggerDirectory.items()}
+    #card_activate(x)
+    y = director.createActor({'cardCode': "01PZ004",
+                              'location': 'hand', 'owner': 'self'})
+    #card_activate(y)
+    #moveEntity(y, ['summon_board'])
+
+
+def getInput():
+    hand = [v for k, v in director.roster['actors'].items(
+    ) if v.location == 'hand' and v.owner == 'self']
+    [print(v.name, v.cost) for v in hand]
+    director.output = [v for v in hand]
+    # director.producer.target = hand[int(input())]
+    inp = input()
+    if inp.isnumeric():
+        feedbackGuy(hand[int(inp)], 'getInput')
+    else:
+        feedbackGuy(config.Cue(inp), 'getInput')
+    # card_activate(hand[int(input())])
+
+
+def init_game():
+    global director
+    director = config.spielberg()
+    kurosawa = director.producer
+    state = 'alpha'
+    while state != 'game_end':
+        kurosawa.activateCall(state, activateCall)
+        state = director.producer.state
+    return director.output
+    print('FIN')
+#
+# def game(director):
+#     global director
+#     return director.output
+
+
+def addStack(entity, script):
+    getattr(director, script['stack']).append(entity)
+    # director.spellStack.append(entity)
+    print(director.spellStack)
+    print('added queue')
+
+
+def modifyState(script):
+    kurosawa = director.producer
+    print(kurosawa.state)
+    if script['state'] == 'game_end':
+        pass
+    print('\033[1;35;40m _modify state \033[1;37;40m')
+    if script['state'] == 'transition':
+        script['state'] = kurosawa.state+'_transition'
+    kurosawa.changeState(script['state'])
+    #feedbackGuy(kurosawa, script['state'])
+
+
+def testFunc():
+    print('FUCK')
+
+
+def prepareActivate(entity):
+    for condition in entity.effect["activation_reqt"]:
+        if helpers.valueCheck(entity, condition, director) is False:
+            print('__valueCheck Fail')
+            return
+    print('*_initial conditions pass')
+
+
+def createEntity(reference, script):
+    # print('__createEntity')
+    try:
+        script['quantity']
+    except KeyError:
+        script['quantity'] = 1
+    for x in range(0, script['quantity']):
+        try:
+            if script['method'] == 'copy':
+                script.update({'reference': reference})
+            elif script['method'] == 'random':
+                y = helpers.db.values()
+                for filterDict in script['filter']:
+                    if filterDict['operator'] == 'in':
+                        y = filter(
+                            lambda v: v[filterDict['attribute']] in filterDict['list'], y)
+                        y = list(y)
+                    else:
+                        y = filter(lambda v: helpers.ops[filterDict['operator']](
+                            v[filterDict['attribute']], filterDict['value']), y)
+                        y = list(y)
+                script.update({'cardCode': helpers.getChoice(y)['cardCode']})
+        except KeyError:
+            pass
+        creation = director.createActor(script)
+        print('created >', creation.name)
+    feedbackGuy(creation, 'createCard')
+    # print('__exit createEntity')
+
+
+def copyEntity(entityList, script):
+    print('_copyEntity')
+    entityList[1] = config.copy.deepcopy(entityList[0])
+
+
+def modifyEntity(entityList, script):
+    print('__change entity')
+    try:
+        script = helpers.alias[script['shorthand']]
+    except KeyError:  # 'no shorthand'
+        pass
+    for entity in entityList:
+        entity.modifyValue(script['attribute'],
+                           script['value'], script['method'])
+        feedbackGuy(entity, 'setOnPlay')
+    print('__exit change entity')
+
+
+def activateEntity(entityList, script):
+    for entity in entityList:
+        entity.activateCall(script['trigger'])
+        feedbackGuy(entity, script['trigger'])
+    # print('eh')
+
+
+def changePlayer():
+    if director.producer.player == 'self':
+        director.producer.player = 'oppo'
+    else:
+        director.producer.player = 'self'
+
+
+def resolve_spell_q():
+    for entity in director.spellStack:
+        for effectIndex in entity.effect:
+            activate(entity, effectIndex, entity.target)
+
+
+def getTarget(entity, x):
+    if 'target' in entity['effect'].keys():
+        entity.target = helpers.acquire_target(entity, entity['effect'], director)
+    else:
+        entity.target = []
+
+
+def activateCall(entity, trigger, effect):
+    print('__activate call', entity.name, trigger)
+    # refactor target timing
+    # if 'target' in effect.keys():
+    #     target = helpers.acquire_target(entity, effect, director)
+    # else:
+    #     target = []
+    if 'effectmap' in effect.keys():
+        conditionmap = []
+        for condition in effect['condition']:
+            try:
+                condition = helpers.alias[condition['shorthand']]
+            except KeyError:
+                pass
+            if 'trigger' in condition.keys() and (trigger != condition['trigger']):
+                conditionmap.append(False)
+            elif condition['method'] == 'autotrue':
+                conditionmap.append(True)
+            else:
+                conditionmap.append(helpers.valueCheck(entity, condition, director))
+        effectmap = effect['effectmap']
+        for index, effectIndex in enumerate(effect['effect']):
+            flag = True
+            try:
+                for indexmap in effectmap[index]:
+                    if conditionmap[indexmap] != 1:
+                        flag = False
+                        break
+            except TypeError:
+                if conditionmap[effectmap[index]] != 1:
+                    flag = False
+            if flag:
+                print('OK')
+                if effect['func'] == 'override':
+                    return [True, effect['param']]
+                else:
+                    activate(entity, effectIndex, entity.target)
+            else:
+                if effect['func'] == 'override':
+                    return False
+    else:  # print('no condition')
+        for effectIndex in effect['effect']:
+            activate(entity, effectIndex, entity.target)
+            if effectIndex['func'] in ['createDeck', 'createCard'] and 'target' in effect.keys():
+                target = helpers.acquire_target(entity, effect, director)
+    print('____ exit activate call', entity.name, trigger)
+
+
+def activate(entity, effectIndex, target):
+    print('__activate effect')
+    try:
+        print(entity.target, '----')
+    except AttributeError:
+        print('a error', effectIndex)
+    function = effectIndex['func']
+    param = effectIndex['param']
+    if type(param) == list:
+        param[1].update({"origin": entity})
+        helpers.parse(param[1], target, director)
+        if len(param[0]) == 0:
+            globals()[function]([], param[1])
+        for j in param[0]:
+            x = target[int(j.strip('target#'))]
+            globals()[function](x, param[1])
+    else:
+        helpers.parse(param, target, director)
+        param.update({"origin": entity})
+        if len(param.keys()) > 1:
+            print('enter')
+            globals()[function](param)
+        else:
+            globals()[function]()
+    print('____exit activate effect')
+
+
+def createPlayer(script):
+    print('_createPlayer')
+    director.createPlayer(script['owner'])
+
+
+def createDeck(script):
+    print(script['deck'])
+    for i in list(LoRDeck.from_deckcode(script['deck'])):
+        count, cardCode = i.split(':')
+        count = int(count)
+        while count > 0:
+            dictVal = {'cardCode': cardCode, 'creator': 'init',
+                       'location': 'deck', 'owner': script['owner']}
+            createEntity(None, dictVal)
+            count = count - 1
+
+
+def moveEntity(entityList, script):
+    print('_____enter move card')
+    print(entityList)
+    [print(k.name) for k in entityList]
+    try:
+        script = helpers.alias[script['shorthand']]
+    except KeyError:
+        pass
+    for card in entityList:
+        if script['destination'] in ['board', 'battlers'] and card.onPlay != 1:
+            modifyEntity(entityList, {'trigger': 'setOnPlay', 'attribute': 'onPlay',
+                                      'value': 1, 'method': 'set'})
+        elif script['destination'] not in ['board', 'battlers'] and card.location in ['board', 'battlers']:
+            modifyEntity(entityList, {'trigger': 'removeOnPlay', 'attribute': 'onPlay',
+                                      'value': 0, 'method': 'set'})
+        card.changeLocation(script['destination'], director)
+    script = {'trigger': 'changeLocation', 'attribute': 'location',
+              'value': script['destination'], 'method': 'set'}
+    modifyEntity(entityList, script)
+    print('_____exit move card')

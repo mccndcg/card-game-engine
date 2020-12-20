@@ -1,0 +1,150 @@
+{
+  "topdeck_oppo": {
+    "entity": "card",
+    "conditions": {
+      "location": "deck",
+      "owner": "oppo"
+      },
+    "get": {
+      "method": "pick",
+      "count": 1,
+      "reverse": "False"
+    }
+  },
+  "cue": {
+    "entity": "cue"
+  },
+  "topdeck": {
+    "entity": "card",
+    "conditions": {
+      "location": "deck",
+      "owner": "self"
+      },
+    "get": {
+      "method": "pick",
+      "count": 1,
+      "reverse": "False"
+    }
+  },
+  "shuffle_to_deck": {
+    "destination": {
+      "location": "deck",
+      "owner": "self",
+      "index": "push"
+    }
+  },
+  "nab": {
+    "conditions": {
+      "supertype": "",
+      "location": "deck",
+      "owner": "self"
+    },
+    "get": {
+      "method": "pick",
+      "count": 1,
+      "reverse": "True"
+      }
+  },
+  "mulligan": {
+    "destination": {
+      "location": "shadowrealm",
+      "index": "push"
+    }
+  },
+  "discard": {
+    "destination": {
+      "location": "shadowrealm",
+      "index": "push"
+    }
+  },
+  "recall": {
+    "destination": {
+      "location": "hand",
+      "owner": "self",
+      "index": "push"
+    }
+  },
+  "summon_board": {
+    "destination": {
+      "location": "board",
+      "index": "push"
+    }
+  },
+  "summon_battlers": {
+    "destination": {
+      "location": "battlers",
+      "index": "push"
+    }
+  },
+  "onSummon": {
+    "trigger": "setOnPlay",
+    "_method_": "funcEnter",
+    "func": "modifyEntity",
+    "entity": "this",
+    "attribute": "onPlay",
+    "method": "set",
+    "value": 1
+  },
+  "reqt_cost": {
+    "a": "this",
+    "a_attri": "cost",
+    "b": "self nexus",
+    "b_attri": "mana",
+    "operator": "<:"
+  },
+  "on play": {
+    "_method_": "valCompare",
+    "a": "this",
+    "a_attri": "onPlay",
+    "value": 1,
+    "operator": "<:"
+  },
+  "self nexus": {
+    "entity": "nexus",
+    "conditions": {
+      "owner": "self"
+    }
+  },
+  "oppo nexus": {
+    "entity": "nexus",
+    "conditions": {
+      "owner": "oppo"
+    }
+  },
+  "self hand": {
+    "entity": "card",
+    "conditions": {
+      "owner": "self",
+      "location": "hand"
+    }
+  },
+  "self battlers": {
+    "entity": "card",
+    "conditions": {
+      "owner": "self",
+      "location": "battlefield"
+    }
+  },
+  "oppo hand": {
+    "entity": "card",
+    "conditions": {
+      "owner": "oppo",
+      "location": "hand"
+    }
+  },
+  "oppo board": {
+    "entity": "card",
+    "conditions": {
+      "owner": "oppo",
+      "location": "board"
+    }
+  },
+  "self board": {
+    "entity": "card",
+    "conditions": {
+      "owner": "self",
+      "location": "board"
+    }
+  }
+
+}

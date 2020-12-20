@@ -1,0 +1,164 @@
+{
+  "alpha":{
+		"func": "state",
+		"condition": [{
+			"trigger": "alpha",
+			"method": "autotrue"
+			}
+		],
+		"effect": [
+			{
+			"func": "testFunc"
+			},
+			{
+			"func": "modifyState",
+			"param":{"state": "init_game"}
+			}
+			]
+	},
+  "init_game":{
+		"func": "state",
+		"condition": [{
+			"trigger": "init_game",
+			"method": "autotrue"
+			}
+		],
+		"target": [{
+			"shorthand": "topdeck_dealer",
+			"automatic": "yes",
+			"quantity": 13
+			},
+      {
+      "shorthand": "producer",
+      "automatic": "yes"}],
+		"effect": [
+			{
+			"func": "createPlayer",
+			"param":{
+				"owner": "p1"
+				}
+			},
+			{
+			"func": "createPlayer",
+			"param":{
+				"owner": "p2"
+				}
+			},
+			{
+			"func": "createPlayer",
+			"param":{
+				"owner": "p3"
+			},
+			{
+			"func": "createPlayer",
+			"param":{
+				"owner": "p4"
+      },
+			{
+			"func": "createDeck",
+			"param":{
+				"deck": "standard",
+				"owner": "dealer"
+				}
+			},
+			{
+			"func": "modifyEntity",
+			"param":{
+				"target": [0],
+				"attribute": ["location", "owner"],
+				"method": "set",
+				"value": ["hand", "p1"]
+				}
+			},
+      {
+			"func": "modifyEntity",
+			"param":{
+				"target": [0],
+				"attribute": ["location", "owner"],
+				"method": "set",
+				"value": ["hand", "p2"]
+				}
+			},
+      {
+			"func": "modifyEntity",
+			"param":{
+				"target": [0],
+				"attribute": ["location", "owner"],
+				"method": "set",
+				"value": ["hand", "p3"]
+				}
+			},
+      {
+			"func": "modifyEntity",
+			"param":{
+				"target": [0],
+				"attribute": ["location", "owner"],
+				"method": "set",
+				"value": ["hand", "p4"]
+				}
+			},
+      {
+        "func": "createVariable",
+        "param": {
+          "name": "turn"
+        }
+      },
+			{
+			"func": "modifyState",
+			"param":{"state": "a"}
+			}
+			]
+	},
+  "a": {
+    "target": [
+			{
+			"filter": {
+					"modifiers": ["dynamic"],
+			    "entity": "card",
+			    "conditions": {
+			      "owner": "producer.player",
+			      "location": "hand",
+            "suit": "producer.suit"
+			    }},
+			"automatic": "yes"}
+		],
+    "effect": [
+      {
+      "condition": {"True": [[1, 2, 4]]},
+      "func": "modifyEntity",
+      "param":{
+        "target": [1],
+        "trigger": "changePlayer",
+        "attribute": "player",
+        "method": "cycle",
+        "value": ["oppo", "self"]}
+      },
+      {
+      "condition": {"True": 0},
+      "func": "modifyState",
+      "param":{"state": "a"}
+      }
+    ]},
+  "a_transition": {
+    "condition": [
+
+    ],
+    "effect": [
+
+    ]
+  },
+  "getInput":{
+		"func": "state",
+		"condition": [{
+			"trigger": "getInput",
+			"method": "autotrue"
+			}
+		],
+		"effect": [
+			{
+			"func": "modifyState",
+			"param":{"state": "transition"}
+			}
+			]
+	}
+}
