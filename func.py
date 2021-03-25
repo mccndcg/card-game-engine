@@ -1,21 +1,39 @@
-from config import Cue, spielberg, deque
+from config import Cue, spielberg, deque, db
 from lor_deckcodes import LoRDeck
+from data import json
 import helpers
 
 
 toggle = True
 #toggle = False
 
+# def overrideGuy(entity, triggerStr):
+#     pass
+#
+def negateGuy(entity, triggerStr):
+    '''
+    Returns true if negation condition is met. Otherwise, false.
+    '''
+    try:
+        for negation in director.overrideDirectory[triggerStr]:
+            if helpers.valueCheck(entity, negation, director, 0):
+                return True
+        return False
+    except KeyError:
+        pass
 
 def feedbackGuy(entity, triggerStr):
     '''
+    Outdated:
     1. triggerDirectory[triggerStr] = [{'entity': v1, 'index': v2}]
     2. listener.target = entity > Entity that passed thru activation becomes
         target for listener.
     '''
-    print(entity)
     def contextMan():
-        if type(entity) is list:
+        if type(triggerStr) is list:
+            for subtrigger in triggerStr:
+                feedbackGuy(entity, subtrigger)
+        elif type(entity) is list:
             for subentity in entity:
                 feedbackGuy(subentity, triggerStr)
         else:
@@ -23,52 +41,50 @@ def feedbackGuy(entity, triggerStr):
     def errorCheck():
         try:
             for listenerDict in director.triggerDirectory[triggerStr]:
-                actuator(listenerDict, triggerStr)
+                listener = listenerDict['entity']
+                listener.target = entity
+                listener.activateCall(triggerStr, activateCall)
+                # actuator(listenerDict, triggerStr)
         # if event has no listing in triggerDirectory
         except KeyError:
             pass
-    def actuator(listenerDict, triggerStr):
-        print('actuator')
-        index = listenerDict['idx']
-        listener = listenerDict['entity']
-        listener.target = entity
-        if listener == director.producer:
-            condition = getattr(listener, triggerStr)['condition'][index]
-        else:
-            condition = listener.effect['condition'][index]
-        # check if condition with trigger in directory is true
-        if (condition['method'] == 'autotrue' or
-            helpers.valueCheck(listener, condition, director, index)):
-            listener.activateCall(triggerStr, activateCall)
+    # def actuator(listenerDict, triggerStr):
+    #     index = listenerDict['idx']
+    #     listener = listenerDict['entity']
+    #     listener.target = entity
+    #     if listener == director.producer:
+    #         condition = getattr(listener, triggerStr)['condition'][index]
+    #     else:
+    #         condition = listener.effect['condition'][index]
+    #     # check if condition with trigger in directory is true
+    #     if (condition['method'] == 'autotrue' or
+    #         helpers.valueCheck(listener, condition, director, index)):
+    #         listener.activateCall(triggerStr, activateCall)
+
+    print('_enter feedback', entity)
     contextMan()
-
-
-def testing():
-    x = director.createActor({'cardCode': "01PZ056",
-                              'location': 'hand', 'owner': 'self'})
-    {print(k, v) for k, v in director.triggerDirectory.items()}
-    #card_activate(x)
-    y = director.createActor({'cardCode': "01PZ004",
-                              'location': 'hand', 'owner': 'self'})
-    #card_activate(y)
-    #moveEntity(y, ['summon_board'])
-
 
 def getInput():
     print('get input: ')
-#    print(director.roster)
+#    print(director.roster)create
 #    {print(x) for x in director.roster['actors'].values() if x.location == 'hand'}
     def dummytest(inputString):
         if inputString == 'create':
-            createEntity(None, {'cardCode': 'DUMMY69', 'location': 'board', 'owner': 'self'})
-            getInput()
+            createEntity({'cardCode': 'DUMMY69', 'location': 'hand', 'owner': 'self'})
+            createEntity({'cardCode': 'DUMMYTARGET', 'location': 'board', 'owner': 'oppo'})
         elif inputString == 'kill':
-            modifyEntity(director.dummy, {'attribute': 'location', 'value': 'graveyard', 'method': 'set'})
-            print(director.dummy.location)
-            getInput()
+            x = [x for x in director.roster['actors'].values() if x.cardCode == 'DUMMY69']
+            modifyEntity(x, {'attribute': 'location', 'value': 'graveyard', 'method': 'set'})
+        elif inputString == 'summon':
+            x = [x for x in director.roster['actors'].values() if x.cardCode == 'DUMMY69']
+            modifyEntity(x, {'attribute': 'location', 'value': 'board', 'method': 'set'})
+        elif inputString == 'show hand':
+            x = [x for x in director.roster['actors'].values() if x.location == 'hand']
+            print(x)
         else:
             print(helpers.textColor('red', 'ERR 01: Command not available. Choose from stack.'))
-            getInput()
+        feedbackGuy(None, 'test')
+        getInput()
     inp = input()
     if inp.isnumeric():
         if len(inp) == 1:
@@ -99,10 +115,6 @@ def game(kurosawa):
     if kurosawa.state == 'game_end' or kurosawa.state == 'round_end':
         return
     else:
-        if kurosawa.state == 'round_start':
-            script = {'cardCode': 'DUMMY69', 'location': 'board', 'owner': 'self', 'quantity': 1}
-            director.dummy = director.createActor(script)
-            print(director.dummy)
         game(kurosawa)
 
 def addStack(entity, script):
@@ -140,7 +152,7 @@ def testFunc():
     print('FUCK')
 
 
-def createEntity(reference, script):
+def createEntity(script):
     '''
     Creates new entity. 1st param is for copying. Script must include:
     {'method':v1, 'quantity':v2, 'cardCode': v3, 'creator': v4,
@@ -155,10 +167,11 @@ def createEntity(reference, script):
         script['quantity'] = 1
     for x in range(0, script['quantity']):
         try:
+            # todo
             if script['method'] == 'copy':
                 script.update({'reference': reference})
             elif script['method'] == 'random':
-                y = helpers.db.values()
+                y = db.values()
                 for filterDict in script['filter']:
                     if filterDict['operator'] == 'in':
                         y = filter(
@@ -173,7 +186,7 @@ def createEntity(reference, script):
             pass
         creation = director.createActor(script)
         print('created >', creation)
-    feedbackGuy(creation, 'createCard')
+        feedbackGuy(creation, 'createEntity')
 
 
 def copyEntity(entityList, script):
@@ -185,31 +198,40 @@ def copyEntity(entityList, script):
     entityList[1] = helpers.deepcopy(entityList[0])
 
 
-def modifyEntity(entityList, script):
+def modifyEntity(entity, script):
     '''
     Modify entity attributes. Script needs {attribute, value, method}
     '''
-    def contextMan(entityList):
-        if type(entityList) is list:
-            for entity in entityList:
-                contextMan(entity)
+    def contextMan(entity):
+        if type(entity) is list:
+            for subEntity in entity:
+                contextMan(subEntity)
         elif type(script['attribute']) is str:
-            actuator(entityList, script['attribute'], script['value'])
+            actuator(entity, script['attribute'], script['value'])
         else:
             for index, subAttribute in script['attribute']:
-                actuator(entityList, subAttribute, script['value'][index])
+                actuator(entity, subAttribute, script['value'][index])
     def actuator(entity, attribute, value):
         '''
         Performs the actual call-out procedure.
         '''
+        trigger = ['modifyEntity']
         if attribute == 'location':
-            trigger = 'changeLocation'
+            trigger.append('changeLocation')
             entity.changeLocation(value, director)
         else:
-            trigger = script['trigger']
+            try:
+                if type(script['trigger']) is list:
+                    trigger.extend(script['trigger'])
+                else:
+                    trigger.append(script['trigger'])
+            except:
+                pass
         entity.modifyValue(attribute, value, script['method'])
-        feedbackGuy(entity, trigger)
-    contextMan(entityList)
+        for subTrigger in trigger:
+            #if negateGuy(entity, triggerStr) is False:
+            feedbackGuy(entity, subTrigger)
+    contextMan(entity)
 
 
 def changePlayer():
@@ -218,10 +240,10 @@ def changePlayer():
     else:
         director.producer.player = 'self'
 
-
-def resolve_spell_q():
-    for entity in director.spellStack:
-        entity.activateCall('activate', activateCall)
+#
+# def resolve_spell_q():
+#     for entity in director.spellStack:
+#         entity.activateCall('activate', activateCall)
 
 
 def activateCall(entity, trigger, effect):
@@ -249,7 +271,6 @@ def activateCall(entity, trigger, effect):
         for effectIndex in effect['effect']:
             actuator(effectIndex)
     def actuator(effectIndex):
-        print('actuator')
         # will try to access condition in effect: condition {True: [0,1], False: [2,3]}
         try:
             flag = True
@@ -274,11 +295,11 @@ def activateCall(entity, trigger, effect):
                     return [True, effect['param']]
                 else:
                     print(helpers.textColor(
-                        'purple', effectIndex['condition']['True']), helpers.textColor('green', effectIndex))
+                        'purple', effectIndex['condition']), helpers.textColor('green', effectIndex))
                     activate(entity, effectIndex, effect)
             else:
                 print(helpers.textColor(
-                    'purple', effectIndex['condition']['True']), helpers.textColor('red', effectIndex))
+                    'purple', effectIndex['condition']), helpers.textColor('red', effectIndex))
                 try:
                     if effect['func'] == 'override':
                         return False
@@ -286,8 +307,9 @@ def activateCall(entity, trigger, effect):
                     pass
         # effect has no condition
         except KeyError:
-            print(helpers.textColor('green', effectIndex))
+            print('no condition', helpers.textColor('green', effectIndex),)
             activate(entity, effectIndex, effect)
+
     conditions()
     effectCycler()
     if toggle:
@@ -308,11 +330,10 @@ def activate(entity, effectIndex, effect):
             # update store level target
             entity.targetStack = helpers.acquire_target(
                 entity, effect['target'], director)
-            target = entity.targetStack
             # parse values, copy the updated dynamic object
             try:
-                param['modifiers']
-                param = helpers.parse(param, target, director)
+                if 'dynamic' in param['modifiers']:
+                    param = helpers.parse(param, entity.targetStack, entity, director)
             except KeyError:
                 pass
         # subeffect level target
@@ -323,7 +344,7 @@ def activate(entity, effectIndex, effect):
                     globals()[function](j, param)
                 #target[0,1,2]
                 elif type(j) is int:
-                    globals()[function](target[j], param)
+                    globals()[function](entity.targetStack[j], param)
         else:
             globals()[function](param)
     except KeyError:
@@ -351,7 +372,7 @@ def createDeck(script):
                 for suit in ['hearts', 'clubs', 'spades', 'diamonds']:
                     dictVal = {'num': num, 'suit': suit,
                        'location': 'deck', 'owner': script['owner']}
-                    createEntity(None, dictVal)
+                    createEntity(dictVal)
         else:
             for i in list(LoRDeck.from_deckcode(script['deck'])):
                 count, cardCode = i.split(':')
@@ -359,27 +380,9 @@ def createDeck(script):
                 while count > 0:
                     dictVal = {'cardCode': cardCode, 'creator': 'init',
                        'location': 'deck', 'owner': script['owner']}
-                    createEntity(None, dictVal)
+                    createEntity(dictVal)
                     count = count - 1
     contextMan()
-
-#
-# def moveEntity(entityList, script):
-#     try:
-#         script = helpers.alias[script['shorthand']]
-#     except KeyError:
-#         pass
-#     for card in entityList:
-#         if script['destination'] in ['board', 'battlers'] and card.onPlay != 1:
-#             modifyEntity(entityList, {'trigger': 'setOnPlay', 'attribute': 'onPlay',
-#                                       'value': 1, 'method': 'set'})
-#         elif script['destination'] not in ['board', 'battlers'] and card.location in ['board', 'battlers']:
-#             modifyEntity(entityList, {'trigger': 'removeOnPlay', 'attribute': 'onPlay',
-#                                       'value': 0, 'method': 'set'})
-#         card.changeLocation(script['destination'], director)
-#     script = {'trigger': 'changeLocation', 'attribute': 'location',
-#               'value': script['destination'], 'method': 'set'}
-#     modifyEntity(entityList, script)
 
 
 def printer(lines):

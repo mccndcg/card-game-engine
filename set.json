@@ -17065,14 +17065,6 @@
   },
 
   {
-    "associatedCards": [],
-    "associatedCardRefs": [],
-    "assets": [
-      {
-        "gameAbsolutePath": "http://dd.b.pvp.net/1_8_0/set2/en_us/img/cards/02PZ010.png",
-        "fullAbsolutePath": "http://dd.b.pvp.net/1_8_0/set2/en_us/img/cards/02PZ010-full.png"
-      }
-    ],
     "region": "Piltover & Zaun",
     "regionRef": "PiltoverZaun",
     "attack": 10,
@@ -17098,25 +17090,35 @@
     "type": "dummy",
     "collectible": true,
     "set": "dummy",
-    "effect":
-    {
-        "target":  [{
-          "shorthand": "self board",
-          "automatic": "yes"}
-        ],
-        "effect": [{
-          "condition": {"True": [0, 1]},
-    			"func": "modifyEntity",
-    			"param": {
-            "target": [0],
-    				"trigger": "modifyEntity",
-    				"attribute": "attack",
-    				"value": 1,
-    				"method": "add"
-    				}
-    			}
-        ]
-    }
+    "effect": {"test": "Test"}
+  },
+  {
+    "region": "Piltover & Zaun",
+    "regionRef": "PiltoverZaun",
+    "attack": 99,
+    "cost": 99,
+    "health": 99,
+    "description": "dummy",
+    "descriptionRaw": "dummy",
+    "levelupDescription": "",
+    "levelupDescriptionRaw": "",
+    "flavorText": "dummy",
+    "artistName": "dummy",
+    "name": "dummy",
+    "cardCode": "DUMMYTARGET",
+    "keywords": [],
+    "keywordRefs": [],
+    "spellSpeed": "",
+    "spellSpeedRef": "",
+    "rarity": "dummy",
+    "rarityRef": "dummy",
+    "subtype": "",
+    "subtypes": [],
+    "supertype": "",
+    "type": "dummy",
+    "collectible": true,
+    "set": "dummy",
+    "effect": {"test": "Test"}
   },
   {
     "associatedCards": [],

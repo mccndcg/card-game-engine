@@ -49,10 +49,10 @@ def valueCheck(entity, reqt, director, idx):
             a = entity.target
         elif reqt['a'] == 'producer':
             a = director.producer
-        else:
-            a = preFilter(reqt['a'], director)
-
-        print(a)
+        elif type(reqt['a']) is dict:
+            a = preFilter(reqt['a'], entity, director)
+        elif reqt['a'][:6] == 'target':
+            a = entity.targetStack[int(targ.strip('target#'))]
         if reqt['a_attri'] == 'count':
             a = len(a)
         else:
@@ -78,16 +78,16 @@ def valueCheck(entity, reqt, director, idx):
         # B is entity
         except KeyError:
             print(textColor('red', 'ER valueCheck 2'))
-            b = preFilter(reqt['b'], director)
+            b = preFilter(reqt['b'], entity, director)
             c = getattr(b, reqt['b_attri'])
         return c
     return contextMan(reqt['method'])
 
 
-def preFilter(filters, director):
+def preFilter(filters, entity, director):
     try:
         if 'dynamic' in filters['modifiers']:
-            filters['conditions'] = parse(filters['conditions'], None, director)
+            filters['conditions'] = parse(filters['conditions'], None, entity, director)
     except KeyError:
         pass
     if filters['entity'] == 'card':
@@ -167,9 +167,9 @@ def acquire_target(entity, targetList, director):
         except KeyError:
             pass
         if index['automatic'] == 'yes':
-            target.append(preFilter(filter, director))
+            target.append(preFilter(filter, entity, director))
         if index['automatic'] == 'no':
-            target.append([choice(preFilter(filter, director))])
+            target.append([choice(preFilter(filter, entity, director))])
     print('_exit acquire_target')
     return target
 
@@ -190,19 +190,21 @@ def getChoice(y):
     return choice(y)
 
 
-def parse(mainEntity, target, director):
+def parse(param, target, entity, director):
     '''
     Converts static text pointers {target#0} in param to dynamic values.
     '''
-    print('_enter parse')
     def subparser(attributeString):
+        print(attributeString)
         targ, attri = attributeString.split('.', 1)
         if targ == 'director':
             return getattr(director, attri)
         elif targ == 'producer':
             return getattr(director.producer, attri)
+        elif targ == 'this':
+            return getattr(entity, attri)
         else:
-            return target[int(targ.strip('target#'))][attri]
+            return getattr(target[int(targ.strip('target#'))], attri)
     def walker(parent, index, entity):
         if type(entity) is dict:
             for k, v in entity.items():
@@ -213,9 +215,10 @@ def parse(mainEntity, target, director):
         elif type(entity) is str and ('.' in entity):
             parent[index] = subparser(entity)
     # persist static text pointer, return the dynamic one to use
-    clone = deepcopy(mainEntity)
-    walker(clone, 0, clone)
-    return clone
+    print('_enter parse')
+    cloneParam = deepcopy(param)
+    walker(cloneParam, 0, cloneParam)
+    return cloneParam
 
 def bool(string):
     return string in ("True")

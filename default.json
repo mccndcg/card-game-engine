@@ -1,0 +1,87 @@
+{
+  "condition": [
+    {
+      "trigger": "test",
+      "method": "valCompare",
+      "a": {
+          "modifiers": ["dynamic"],
+          "entity": "card",
+          "conditions": {
+            "owner": "oppo",
+            "location": "board",
+            "index": "this.index"
+          }},
+      "a_attri": "count",
+      "value": 1,
+      "operator": "="
+    },
+    {
+      "method": "valCompare",
+      "a_shorthand": "this",
+      "a_attri": "doubleattack",
+      "value": 1,
+      "operator": "="
+    },
+    {
+      "method": "valCompare",
+      "a_shorthand": "this",
+      "a_attri": "quickattack",
+      "value": 1,
+      "operator": "="
+    }
+    ],
+    "target": [
+      {
+        "automatic": "yes",
+        "shorthand": "oppo nexus"
+      },
+      {
+        "filter": {
+            "modifiers": ["dynamic"],
+            "entity": "card",
+            "conditions": {
+              "owner": "oppo",
+              "location": "board",
+              "index": "this.index"
+            }},
+        "automatic": "yes"
+      }
+    ],
+    "effect": [
+      {
+        "func": "modifyEntity",
+        "condition": {"False": 0},
+        "param": {
+          "modifiers": ["dynamic"],
+          "target": [0],
+          "trigger": "modifyEntity",
+          "attribute": "health",
+          "value": "this.attack",
+          "method": "subtract"
+          }
+      },
+      {
+        "condition": {"True": 0},
+        "func": "modifyEntity",
+        "param": {
+          "modifiers": ["dynamic"],
+          "target": [1],
+          "trigger": "modifyEntity",
+          "attribute": "health",
+          "value": "this.attack",
+          "method": "subtract"
+          }
+        },
+        {
+          "condition": {"True": 1},
+          "func": "modifyEntity",
+          "param": {
+            "modifiers": ["dynamic"],
+            "target": [1],
+            "trigger": "modifyEntity",
+            "attribute": "health",
+            "value": "this.attack",
+            "method": "subtract"
+            }
+          }]
+}

@@ -21,6 +21,8 @@ class producer(object):
         self.player = 'self'
         self.target = None
         self.targetList = None
+        # for trigger, condition in init_override().items():
+        #     director.createOverride(trigger, condition)
         for state, effect in init_state().items():
             setattr(self, state, effect)
             for index, condition in enumerate(effect['condition']):
@@ -76,16 +78,16 @@ class card(object):
         self.target = []
 
     def __repr__(self):
-        return f'({self.name} {self.location} {self.index})'
+        return f'({self.name} {self.location} {self.index} {self.owner})'
 
     def __str__(self):
-        return f'({self.name} {self.location} {self.index})'
+        return f'({self.name} {self.location} {self.index} {self.owner})'
 
     def activateCall(self, triggerStr, function):
         try:
             function(self, triggerStr, self.effect)
         except AttributeError:
-            print(textColor('red', 'no effect encoded'))
+            print(textColor('red', 'no effect encoded'), self, triggerStr)
             pass
 
     def changeLocation(self, destination, director):
@@ -174,6 +176,7 @@ class spielberg(object):
         self.locationStack = deque([])
         self.roster = {'actors': {}, 'nexus': {}}
         self.triggerDirectory = {}
+        self.overrideDirectory = {}
         self.location = {}
         self.producer = producer(self)
         self.deck2 = 'CEBQUAQGAQEAWFA2DQQCMLJ2AIBAGAYIAEAQGAQAAEAQCAZT'
@@ -217,9 +220,6 @@ class spielberg(object):
                 x = deepcopy(dictVal['reference'])
             except KeyError:
                 x = card(db[dictVal['cardCode']], dictVal)
-            # test
-            if x.uid == 2:
-                x.location = 'board'
             # add to actors database
             self.roster['actors'].update({x.uid: x})
             # 'set origin'
@@ -256,6 +256,13 @@ class spielberg(object):
         addListenersVariables(x)
         return x
 
+    def createOverride(self, trigger, condition):
+        try:
+            if condition not in self.overrideDirectory['trigger']:
+                self.overrideDirectory['trigger'].append({'entity':x, 'idx':index})
+        except KeyError:
+            self.overrideDirectory['trigger'] = [condition]
+
     def createListeners(self, x, condition, index):
         try:
             condition = alias[condition['shorthand']]
@@ -265,12 +272,12 @@ class spielberg(object):
             condition['trigger'] in condition
         except KeyError:
             return
+        # is index necessary?
         try:
             if x not in self.triggerDirectory[condition['trigger']]:
                 self.triggerDirectory[condition['trigger']].append({'entity':x, 'idx':index})
         except KeyError:
-            self.triggerDirectory[condition['trigger']] = []
-            self.triggerDirectory[condition['trigger']].append({'entity':x, 'idx':index})
+            self.triggerDirectory[condition['trigger']] = [{'entity':x, 'idx':index}]
 
     def createPlayer(self, owner):
         x = nexus(owner)

@@ -1,0 +1,49 @@
+{
+  "condition": [
+    {
+      "trigger": "test",
+      "method": "valCompare",
+      "a": {
+          "modifiers": ["dynamic"],
+          "entity": "card",
+          "conditions": {
+            "owner": "oppo",
+            "location": "board",
+            "index": "this.index"
+          }},
+      "a_attri": "count",
+      "value": 1,
+      "operator": "="
+    }
+    ],
+    "target": [
+      {
+        "automatic": "yes",
+        "shorthand": "oppo nexus"
+      },
+      {
+        "filter": {
+            "modifiers": ["dynamic"],
+            "entity": "card",
+            "conditions": {
+              "owner": "oppo",
+              "location": "board",
+              "index": "this.index"
+            }},
+        "automatic": "yes"
+      }
+    ],
+    "effect": [
+      {
+        "func": "modifyEntity",
+        "condition": {"False": 0},
+        "param": {
+          "modifiers": ["dynamic"],
+          "target": [0],
+          "trigger": "modifyEntity",
+          "attribute": "health",
+          "value": 1,
+          "method": "subtract"
+          }
+      }]
+}

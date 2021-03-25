@@ -1,15 +1,5 @@
 {
 	"a": {
-		"target": [
-			{
-				"automatic": "yes",
-				"filter": {
-					"entity": "nexus",
-					"modifiers": ["dynamic"],
-					"condition": "a",
-					"name": "producer.player"}
-			}
-		],
 		"condition": [
 			{
 				"trigger": "a",
@@ -23,24 +13,7 @@
 					"conditions": {
 						"owner": "producer.player",
 						"location": "hand",
-						"type": "Unit",
-						"mana": {
-							"operator": "<=",
-							"value": {"a": 5}}
-					},
-				"a_attri": "count",
-				"value": 0,
-				"operator": ">"},
-			{
-				"method": "valCompare",
-				"a": {
-					"modifiers": ["dynamic"],
-					"entity": "card",
-					"conditions": {
-						"owner": "producer.player",
-						"location": "board",
-						"type": "Unit",
-						"attack_flag": 1,
+						"type": "Unit"
 					}},
 				"a_attri": "count",
 				"value": 0,

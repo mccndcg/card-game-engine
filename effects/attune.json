@@ -1,0 +1,30 @@
+{
+  "condition": [
+    {
+      "trigger": "test",
+      "method": "valDelta",
+      "a_shorthand": "this",
+      "a_attri": "location",
+      "value": "board",
+      "value_old": "hand",
+      "operator": "="
+    }
+    ],
+    "target": [
+      {
+        "automatic": "yes",
+        "shorthand": "self nexus"
+      }
+    ],
+    "effect": [
+      {
+        "func": "modifyEntity",
+        "condition": {"True": 0},
+        "param": {
+          "target": [0],
+          "attribute": "mana",
+          "value": 1,
+          "method": "add"
+          }
+      }]
+}

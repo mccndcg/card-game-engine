@@ -103,12 +103,22 @@
     "entity": "nexus",
     "conditions": {
       "owner": "self"
+    },
+    "get": {
+      "method": "pick",
+      "count": 1,
+      "reverse": "False"
     }
   },
   "oppo nexus": {
     "entity": "nexus",
     "conditions": {
       "owner": "oppo"
+    },
+    "get": {
+      "method": "pick",
+      "count": 1,
+      "reverse": "False"
     }
   },
   "self hand": {

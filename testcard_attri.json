@@ -1,0 +1,10 @@
+{
+  "dummy":
+    {
+      "doubleattack": 1
+    },
+  "defender":
+    {
+      "invul": 1
+    }
+}

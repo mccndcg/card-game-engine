@@ -1,0 +1,35 @@
+
+create random card
+{
+  "condition": [
+    {
+      "trigger": "test",
+      "method": "valCompare",
+      "a_shorthand": "this",
+      "a_attri": "location",
+      "value": "board",
+      "operator": "="}
+    ],
+    "target":  [{
+      "shorthand": "self nexus",
+      "automatic": "yes"}
+    ],
+    "effect": [{
+      "condition": {"True": [0]},
+      "func": "createEntity",
+      "param": {
+        "modifiers": ["dynamic"],
+        "method": "random",
+        "owner": "self",
+        "location": "hand",
+        "quantity": 1,
+        "filter": [
+          {"attribute": "region",
+          "list": ["target#0.region1", "target#0.region2"],
+          "operator": "in"},
+          {"attribute": "type",
+          "value": "Spell",
+          "operator": "="}
+          ]}
+      }]
+}
