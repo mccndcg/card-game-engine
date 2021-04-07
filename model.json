@@ -1,0 +1,41 @@
+{
+	"a": {
+		"condition": [
+			{
+				"trigger": "a",
+				"method": "autotrue"
+				}
+			],
+		"effect": [
+			{"func": "resetStack",
+			"param": {"stack": "options"}},
+			{
+			"func": "addStack",
+			"param": {
+					"target": ["pass"],
+					"stack": "options"}
+			},
+			{
+			"condition": {"True": 1},
+			"func": "addStack",
+			"param": {
+					"target": ["activate"],
+					"stack": "options"}
+			},
+			{
+			"condition": {"True": 2},
+			"func": "addStack",
+			"param": {
+          #string targets can be multiple in list
+					"target": ["battle", "arf"],
+					"stack": "options"}
+			},
+			{
+			"func": "printStack",
+			"param": {"stack": "options"}
+			},
+			{
+			"func": "getInput"
+			}
+			]
+		},

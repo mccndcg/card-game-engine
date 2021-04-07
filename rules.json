@@ -1,0 +1,14 @@
+{
+	"battecrySummon": {
+		"condition": [
+			{
+				"negate": "battlecrySummon",
+				"method": "valCompare",
+				"a": "target",
+				"a_attri": "cost",
+				"b": "self nexus",
+				"b_attri": "mana",
+				"operator": ">"}
+			]
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "summon_on_play": {
+		"condition": [
+			{
+				"trigger": "summon_on_play",
+				"method": "autotrue"
+      },
+      {
+				"method": "valCompare",
+				"a":  {
+					"modifiers": ["dynamic"],
+			    "entity": "card",
+			    "conditions": {
+			      "owner": "producer.player",
+			      "location": "board"
+			    }},
+				"a_attri": "count",
+				"value": 6,
+				"operator": "<"},
+			],
+    "target": [
+
+    ]
+		"effect": [
+      {
+		  "condition": {"True": [1]},
+			"func": "modifyEntity",
+			"param":{
+				"target": [0],
+				"attribute": "location",
+				"method": "set",
+				"value": "board"
+				}
+			},
+
+      ,
+    {
+      "method": "valCompare",
+      "a": {
+        "modifiers": ["dynamic"],
+        "entity": "card",
+        "conditions": {
+          "owner": "producer.player",
+          "location": "hand",
+          "type": "Unit"
+        }},
+      "a_attri": "count",
+      "value": 0,
+      "operator": ">"},
+    {
+      "method": "valCompare",
+      "a_shorthand": "self nexus",
+      "a_attri": "rally",
+      "value": 1,
+      "operator": "="
+    }
+}

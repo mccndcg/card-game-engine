@@ -11,6 +11,9 @@ from copy import deepcopy
 #     elif entity.type == '':
 #         as
 
+toggle = True
+toggle = False
+
 def valueCheck(entity, reqt, director, idx):
     '''
     Conditional for effects.
@@ -136,7 +139,8 @@ def Filter(x, filterDict):
 
 
 def acquire_target(entity, targetList, director):
-    print('_enter acquire_target')
+    if toggle:
+        print('_enter acquire_target')
     target = []
     for index in targetList:
         if type(index) is list:
@@ -170,7 +174,8 @@ def acquire_target(entity, targetList, director):
             target.append(preFilter(filter, entity, director))
         if index['automatic'] == 'no':
             target.append([choice(preFilter(filter, entity, director))])
-    print('_exit acquire_target')
+    if toggle:
+        print('_exit acquire_target')
     return target
 
 
@@ -215,7 +220,8 @@ def parse(param, target, entity, director):
         elif type(entity) is str and ('.' in entity):
             parent[index] = subparser(entity)
     # persist static text pointer, return the dynamic one to use
-    print('_enter parse')
+    if toggle:
+        print('_enter parse')
     cloneParam = deepcopy(param)
     walker(cloneParam, 0, cloneParam)
     return cloneParam

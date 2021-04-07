@@ -53,7 +53,10 @@ def init_override():
 
 def init_state():
     with open('states.json', encoding="utf8") as json_file:
-        return {k: v for k, v in json.load(json_file).items()}
+        data =  {k: v for k, v in json.load(json_file).items()}
+    with open('rules.json', encoding="utf8") as json_file:
+        data.update({k: v for k, v in json.load(json_file).items()})
+        return data
 
 
 def init_globals():

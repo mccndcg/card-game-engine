@@ -2,47 +2,51 @@
 	"a": {
 		"condition": [
 			{
-	      "method": "valCompare",
-	      "a": {
-	        "modifiers": ["dynamic"],
-	        "entity": "card",
-	        "conditions": {
-	          "owner": "producer.player",
-	          "location": "hand",
-	          "type": "Unit"
-	        }},
-	      "a_attri": "count",
-	      "value": 0,
-	      "operator": ">"},
-	    {
-	      "method": "valCompare",
-	      "a_shorthand": "self nexus",
-	      "a_attri": "rally",
-	      "value": 1,
-	      "operator": "="
-	    }
+				"trigger": "a",
+				"method": "autotrue"
+				},
+			{
+				"method": "valCompare",
+				"a": {
+					"modifiers": ["dynamic"],
+					"entity": "card",
+					"conditions": {
+						"owner": "producer.player",
+						"location": "hand",
+						"type": "Unit"
+					}},
+				"a_attri": "count",
+				"value": 0,
+				"operator": ">"},
+			{
+				"method": "valCompare",
+				"a_shorthand": "self nexus",
+				"a_attri": "rally",
+				"value": 1,
+				"operator": "="
+			}
 			],
 		"effect": [
 			{"func": "resetStack",
 			"param": {"stack": "options"}},
 			{
-			"condition": {"True": 0},
 			"func": "addStack",
 			"param": {
-					"target": ["activate"],
+					"target": ["pass"],
 					"stack": "options"}
 			},
 			{
 			"condition": {"True": 1},
 			"func": "addStack",
 			"param": {
-					"target": ["battle"],
+					"target": ["activate"],
 					"stack": "options"}
 			},
 			{
+			"condition": {"True": 2},
 			"func": "addStack",
 			"param": {
-					"target": ["pass"],
+					"target": ["battle"],
 					"stack": "options"}
 			},
 			{
@@ -54,9 +58,9 @@
 			}
 			]
 		},
-	"activate": {
+	"b": {
 		"condition": [{
-			"trigger": "activate",
+			"trigger": "b",
 			"method": "autotrue"
 			}
 		],
@@ -86,76 +90,6 @@
 			{"func": "getInput"}
 			]
 		},
-	"activate_select": {
-		"condition": [
-			{
-				"method": "valCompare",
-				"a": "target",
-				"a_attri": "type",
-				"value": "Unit",
-				"operator": "="
-			},
-			{
-				"method": "valCompare",
-				"a": "target",
-				"a_attri": "spellSpeed",
-				"value": "Spell",
-				"operator": "="
-			}],
-		"target": [
-			{
-				"shorthand": "target",
-				"automatic": "yes"}],
-		"effect": [
-			{
-				"func": "testFunc"
-			},
-			{
-			"condition": {"True": 1},
-			"func": "activateEntity",
-			"param":{
-				"target": [0],
-				"trigger": "activateSpell"
-				}
-			},
-			{
-			"condition": {"True": 0},
-			"func": "activateEntity",
-			"param":{
-				"target": [0],
-				"trigger": "battlecrySummon"
-				}
-			}
-		]
-	},
-	"battlecrySummon_fizzle": {
-		"target": [
-			{
-			"shorthand": "producer",
-			"automatic": "yes"}
-			],
-		"effect": [
-			{
-				"func": "getInput"
-			},
-			{
-				"func": "feedbackGuy",
-				"param": {
-					"target": [0],
-					"trigger": "a"
-				}
-			}
-		]
-	},
-
-
-
-
-
-
-
-
-
 	"c": {
 			"condition": [{
 				"trigger": "c",
@@ -458,26 +392,26 @@
 		"func": "state",
 		"condition": [
 			{
-				"method": "valCompare",
-				"a": "target",
-				"a_attri": "spellSpeed",
-				"value": "Burst",
-				"operator": "="
+			"method": "valCompare",
+			"a": "target",
+			"a_attri": "spellSpeed",
+			"value": "Burst",
+			"operator": "="
 			},
 			{
-				"method": "valCompare",
-				"a": "target",
-				"a_attri": "spellSpeed",
-				"value": "Slow",
-				"operator": "="
+			"method": "valCompare",
+			"a": "target",
+			"a_attri": "spellSpeed",
+			"value": "Slow",
+			"operator": "in"
 			},
 			{
-				"trigger": "b_transition",
-				"method": "valCompare",
-				"a": "target",
-				"a_attri": "type",
-				"value": "Unit",
-				"operator": "="
+			"trigger": "b_transition",
+			"method": "valCompare",
+			"a": "target",
+			"a_attri": "type",
+			"value": "Unit",
+			"operator": "="
 			},
 			{
 				"method": "valCompare",
@@ -492,13 +426,13 @@
 				"a_attri": "count",
 				"value": 0,
 				"operator": ">"},
-			{
+				{
 				"method": "valCompare",
 				"a": "target",
 				"a_attri": "spellSpeed",
 				"value": "Fast",
-				"operator": "="
-			}
+				"operator": "in"
+				}
 		],
 		"target": [
 			{
@@ -520,10 +454,12 @@
 			},
 			{
 			"condition": {"True": 2},
-			"func": "activateEntity",
+			"func": "modifyEntity",
 			"param":{
 				"target": [0],
-				"trigger": "battlecrySummon"
+				"attribute": "location",
+				"method": "set",
+				"value": "board"
 				}
 			},
 			{
@@ -685,7 +621,7 @@
 			}
 			]
 	},
-	"getInputxxxxxxxxxxxx":{
+	"getInput":{
 		"func": "state",
 		"condition": [{
 			"trigger": "getInput",

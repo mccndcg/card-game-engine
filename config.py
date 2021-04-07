@@ -6,8 +6,14 @@ from helpers import textColor, deepcopy
 class Cue(object):
 
     def __init__(self, line):
-        self.line = line
+        self.command = line
         self.name = 'morricone'
+
+    def __repr__(self):
+        return f'({self.command})'
+
+    def __str__(self):
+        return f'({self.command})'
 
 
 class producer(object):
@@ -21,12 +27,13 @@ class producer(object):
         self.player = 'self'
         self.target = None
         self.targetList = None
-        # for trigger, condition in init_override().items():
-        #     director.createOverride(trigger, condition)
         for state, effect in init_state().items():
             setattr(self, state, effect)
-            for index, condition in enumerate(effect['condition']):
-                director.createListeners(self, condition, index)
+            try:
+                for condition in effect['condition']:
+                    director.createSubscriber(self, condition)
+            except KeyError: # no condition
+                pass
 
     def changeState(self, state):
         # self.prevState = deepcopy(self.state)
@@ -177,6 +184,7 @@ class spielberg(object):
         self.roster = {'actors': {}, 'nexus': {}}
         self.triggerDirectory = {}
         self.overrideDirectory = {}
+        self.constitution = {}
         self.location = {}
         self.producer = producer(self)
         self.deck2 = 'CEBQUAQGAQEAWFA2DQQCMLJ2AIBAGAYIAEAQGAQAAEAQCAZT'
@@ -238,8 +246,8 @@ class spielberg(object):
         def addListenersVariables(x):
             try:
                 #set listener
-                for index, condition in enumerate(x.effect['condition']):
-                    self.createListeners(x, condition, index)
+                for condition in x.effect['condition']:
+                    self.createSubscriber(x, condition)
                 #set variables
                 for variable in x.effect['variable']:
                     if variable['entity'] == 'player':
@@ -256,28 +264,21 @@ class spielberg(object):
         addListenersVariables(x)
         return x
 
-    def createOverride(self, trigger, condition):
-        try:
-            if condition not in self.overrideDirectory['trigger']:
-                self.overrideDirectory['trigger'].append({'entity':x, 'idx':index})
-        except KeyError:
-            self.overrideDirectory['trigger'] = [condition]
-
-    def createListeners(self, x, condition, index):
-        try:
-            condition = alias[condition['shorthand']]
-        except KeyError:
-            pass
-        try:
-            condition['trigger'] in condition
-        except KeyError:
+    def createSubscriber(self, entity, condition):
+        if 'trigger' in condition:
+            directory = self.triggerDirectory
+            trigger = condition['trigger']
+        elif 'negate' in condition:
+            directory = self.overrideDirectory
+            trigger = condition['negate']
+        else:
             return
-        # is index necessary?
         try:
-            if x not in self.triggerDirectory[condition['trigger']]:
-                self.triggerDirectory[condition['trigger']].append({'entity':x, 'idx':index})
+            if entity not in directory[trigger]:
+                directory[trigger].append(entity)
         except KeyError:
-            self.triggerDirectory[condition['trigger']] = [{'entity':x, 'idx':index}]
+            directory[trigger] = [entity]
+            print(trigger)
 
     def createPlayer(self, owner):
         x = nexus(owner)

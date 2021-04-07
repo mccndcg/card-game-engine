@@ -5,7 +5,7 @@ import helpers
 
 
 toggle = True
-#toggle = False
+toggle = False
 
 # def overrideGuy(entity, triggerStr):
 #     pass
@@ -15,12 +15,14 @@ def negateGuy(entity, triggerStr):
     Returns true if negation condition is met. Otherwise, false.
     '''
     try:
-        for negation in director.overrideDirectory[triggerStr]:
-            if helpers.valueCheck(entity, negation, director, 0):
-                return True
-        return False
+        for listener in director.overrideDirectory[triggerStr]:
+            listener.target = entity
+            listener.activateCall(triggerStr, negateCall)
     except KeyError:
         pass
+
+def negateCall():
+    pass
 
 def feedbackGuy(entity, triggerStr):
     '''
@@ -40,28 +42,14 @@ def feedbackGuy(entity, triggerStr):
             errorCheck()
     def errorCheck():
         try:
-            for listenerDict in director.triggerDirectory[triggerStr]:
-                listener = listenerDict['entity']
+            for listener in director.triggerDirectory[triggerStr]:
                 listener.target = entity
                 listener.activateCall(triggerStr, activateCall)
                 # actuator(listenerDict, triggerStr)
         # if event has no listing in triggerDirectory
         except KeyError:
-            pass
-    # def actuator(listenerDict, triggerStr):
-    #     index = listenerDict['idx']
-    #     listener = listenerDict['entity']
-    #     listener.target = entity
-    #     if listener == director.producer:
-    #         condition = getattr(listener, triggerStr)['condition'][index]
-    #     else:
-    #         condition = listener.effect['condition'][index]
-    #     # check if condition with trigger in directory is true
-    #     if (condition['method'] == 'autotrue' or
-    #         helpers.valueCheck(listener, condition, director, index)):
-    #         listener.activateCall(triggerStr, activateCall)
-
-    print('_enter feedback', entity)
+            print('no such event')
+    print('_enter feedback', entity, triggerStr)
     contextMan()
 
 def getInput():
@@ -81,6 +69,12 @@ def getInput():
         elif inputString == 'show hand':
             x = [x for x in director.roster['actors'].values() if x.location == 'hand']
             print(x)
+        elif inputString == 'cue':
+            print(director.cue.line)
+        elif inputString == 'state':
+            print(director.producer.state)
+        elif inputString == 'player':
+            print(director.producer.player)
         else:
             print(helpers.textColor('red', 'ERR 01: Command not available. Choose from stack.'))
         feedbackGuy(None, 'test')
@@ -88,23 +82,32 @@ def getInput():
     inp = input()
     if inp.isnumeric():
         if len(inp) == 1:
-            feedbackGuy(director.options[int(inp)], 'getInput')
+            #feedbackGuy(director.options[int(inp)], director.cue.command + '_select')
+            feedbackGuy(director.options[int(inp)], 'activate_select')
         elif len(inp) > 1:
             feedbackGuy([director.options[int(x)] for x in inp], 'getInput')
+    # if inp.isnumeric():
+    #     try:
+    #         print(director.producer.player)
+    #         print(director.location[director.producer.player]['hand'])
+    #     except KeyError:
+    #         getInput()
     else:
         if inp in director.options:
+            director.cue.command = inp
             print(helpers.textColor('green', 'Command accepted.'))
-            feedbackGuy(Cue(inp), 'getInput')
+            feedbackGuy(director.cue, inp)
         else:
             dummytest(inp)
-
-    # card_activate(hand[int(input())])
 
 
 def init_game():
     global director
     director = spielberg()
     kurosawa = director.producer
+    # with open('rules.json', encoding='utf8') as json_file:
+    #     for rule, y in loads(json_file).items():
+    #         self.triggerDirectory[x['condition']['trigger']].append({'entity':x, 'idx':index})
     director.producer.state = 'alpha'
     game(kurosawa)
     print('FIN')
@@ -129,6 +132,7 @@ def addStack(entity, script):
             director, script['stack']) + deque(entity))
     else:
         getattr(director, script['stack']).append(entity)
+    getattr(director, script['stack']).reverse()
     print('stack added')
 
 
@@ -151,6 +155,11 @@ def modifyState(script):
 def testFunc():
     print('FUCK')
 
+
+def activateEntity(a, b):
+    print(a, b)
+    #negateGuy(a, b['trigger'])
+    exit()
 
 def createEntity(script):
     '''

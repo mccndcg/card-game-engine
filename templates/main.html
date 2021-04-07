@@ -1,0 +1,62 @@
+{% extends "index.html" %}
+
+{% block title %}---{% endblock %}
+
+{% block main %}
+<div id="test">
+  asd
+  <state-display></state-display>
+</div>
+
+<p id="demo"></p>
+{% endblock %}
+{% block script %}
+<script type="text/javascript" src="./static/js/popper.min.js"></script>
+<script type="text/javascript" src="./static/js/bootstrap.min.js"></script>
+<script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+<script type="text/javascript" src="./static/js/axios.min.js"></script>
+<script type="text/javascript" src="./static/js/vue.js"></script>
+<script type="text/javascript" src="./static/js/powr.js"></script>
+<script type="text/javascript">
+  const mountApp = x.mount('#test')
+  $(document).ready(async function(){
+    let states = await getFetch();
+    var x, y;
+    for (x in states) {
+      document.getElementById("demo").innerHTML += x + "<br>";
+      for (y in states[x]) {
+        document.getElementById("demo").innerHTML += "  " + y + "<br>";
+        }
+      }
+  });
+
+  async function getFetch() {
+      const imagedata = await fetch(`${window.origin}/get_states`, {
+      method: "POST",
+      credentials: "include",
+      body: JSON.stringify({'a':'a'}),
+      cache: "no-cache",
+      headers: new Headers({
+        "content-type": "application/json"
+        })
+      })
+      .then(function (response) {
+        if (response.status !== 200) {
+          console.log(`Looks like there was a problem. Status code: ${response.status}`);}
+        else {
+          return response.json();
+          }
+      })
+      .catch(function (error) {
+        console.log("Fetch error: " + error);
+      });
+      console.log('EXIT')
+      return imagedata
+    }
+
+
+</script>
+
+
+
+{% endblock %}
