@@ -15,6 +15,11 @@ class Cue(object):
     def __str__(self):
         return f'({self.command})'
 
+class stateObject(object):
+
+    def __init__(self, effect, name):
+        self.effect = effect
+        self.name = name
 
 class producer(object):
 
@@ -28,10 +33,10 @@ class producer(object):
         self.target = None
         self.targetList = None
         for state, effect in init_state().items():
-            setattr(self, state, effect)
+            setattr(self, state, stateObject(effect, state))
             try:
                 for condition in effect['condition']:
-                    director.createSubscriber(self, condition)
+                    director.createSubscriber(getattr(self, state), condition)
             except KeyError: # no condition
                 pass
 
@@ -41,9 +46,9 @@ class producer(object):
         self.state = state
         print(textColor('grey', self.prevState), textColor('yellow', self.state))
 
-    def activateCall(self, triggerStr, function):
-        print('----activate', self.state)
-        function(self, triggerStr, getattr(self, triggerStr))
+    def activateCall(self, function):
+        state_entity = getattr(self, self.state)
+        function(state_entity, self.state)
 
     def modifyValue(self, variable, value, operator):
         var = getattr(self, variable)
@@ -278,7 +283,6 @@ class spielberg(object):
                 directory[trigger].append(entity)
         except KeyError:
             directory[trigger] = [entity]
-            print(trigger)
 
     def createPlayer(self, owner):
         x = nexus(owner)

@@ -5,24 +5,61 @@ import helpers
 
 
 toggle = True
-toggle = False
+#toggle = False
 
 # def overrideGuy(entity, triggerStr):
 #     pass
 #
-def negateGuy(entity, triggerStr):
+
+
+def activateEntity(entity, b):
+    def contextMan():
+        if type(entity) is list:
+            for subEntity in entity:
+                activateEntity(subEntity, b)
+        else:
+            actuator()
+    def actuator():
+        if not negateGuy(entity, b['trigger']):
+            activateCall(entity, b['trigger'])
+            feedbackGuy(entity, b['trigger'])
+    contextMan()
+
+def negateGuy(entity, trigger):
     '''
     Returns true if negation condition is met. Otherwise, false.
     '''
     try:
-        for listener in director.overrideDirectory[triggerStr]:
+        for listener in director.overrideDirectory[trigger]:
             listener.target = entity
-            listener.activateCall(triggerStr, negateCall)
+            if negateCall(listener, trigger, entity) == True:
+                return True
+            return False
     except KeyError:
         pass
 
-def negateCall():
-    pass
+def negateCall(listener, trigger, entity):
+    '''
+    Negate triggers must be descriptive of what is allowed. Returns True if
+    effect is negated.
+    '''
+    def same_guy(condition):
+        if condition['a'] == 'this':
+            a = listener
+        elif condition['a'] == 'target':
+            a = listener.target
+        elif condition['a'] == 'producer':
+            a = director.producer
+        elif type(condition['a']) is dict:
+            a = preFilter(condition['a'], entity, director)
+        if a == entity:
+            return True
+        return False
+    for idx, condition in enumerate(listener.effect['condition']):
+        if 'negate' in condition.keys() and (trigger == condition['negate']) and same_guy(condition):
+            if helpers.valueCheck(listener, condition, director, idx) == False:
+                return(True)
+    return(False)
 
 def feedbackGuy(entity, triggerStr):
     '''
@@ -44,18 +81,16 @@ def feedbackGuy(entity, triggerStr):
         try:
             for listener in director.triggerDirectory[triggerStr]:
                 listener.target = entity
-                listener.activateCall(triggerStr, activateCall)
-                # actuator(listenerDict, triggerStr)
+                activateCall(listener, triggerStr)
         # if event has no listing in triggerDirectory
         except KeyError:
-            print('no such event')
-    print('_enter feedback', entity, triggerStr)
+            pass
+    if toggle:
+        print('_enter feedback', entity, triggerStr)
     contextMan()
 
 def getInput():
     print('get input: ')
-#    print(director.roster)create
-#    {print(x) for x in director.roster['actors'].values() if x.location == 'hand'}
     def dummytest(inputString):
         if inputString == 'create':
             createEntity({'cardCode': 'DUMMY69', 'location': 'hand', 'owner': 'self'})
@@ -82,8 +117,7 @@ def getInput():
     inp = input()
     if inp.isnumeric():
         if len(inp) == 1:
-            #feedbackGuy(director.options[int(inp)], director.cue.command + '_select')
-            feedbackGuy(director.options[int(inp)], 'activate_select')
+            feedbackGuy(director.options[int(inp)], director.cue.command + '_select')
         elif len(inp) > 1:
             feedbackGuy([director.options[int(x)] for x in inp], 'getInput')
     # if inp.isnumeric():
@@ -105,16 +139,13 @@ def init_game():
     global director
     director = spielberg()
     kurosawa = director.producer
-    # with open('rules.json', encoding='utf8') as json_file:
-    #     for rule, y in loads(json_file).items():
-    #         self.triggerDirectory[x['condition']['trigger']].append({'entity':x, 'idx':index})
     director.producer.state = 'alpha'
     game(kurosawa)
     print('FIN')
 
 
 def game(kurosawa):
-    kurosawa.activateCall(kurosawa.state, activateCall)
+    kurosawa.activateCall(activateCall)
     if kurosawa.state == 'game_end' or kurosawa.state == 'round_end':
         return
     else:
@@ -133,7 +164,6 @@ def addStack(entity, script):
     else:
         getattr(director, script['stack']).append(entity)
     getattr(director, script['stack']).reverse()
-    print('stack added')
 
 
 def resetStack(script):
@@ -155,11 +185,6 @@ def modifyState(script):
 def testFunc():
     print('FUCK')
 
-
-def activateEntity(a, b):
-    print(a, b)
-    #negateGuy(a, b['trigger'])
-    exit()
 
 def createEntity(script):
     '''
@@ -255,71 +280,74 @@ def changePlayer():
 #         entity.activateCall('activate', activateCall)
 
 
-def activateCall(entity, trigger, effect):
+def activateCall(entity, trigger):
     '''
-    Bridge function to call conditional functions.
+    Bridge function to call conditional functions. Does not have feedback.
     1. Check truthiness of conditions, then store in conditionmap.
     2. Iterate over each effect.
     3. Access condition requirements and refer against conditionmap.
     4. Effect can also be conditionless (autotrue).
     5. If conditions are met, call activate.
     '''
-    if toggle:
-        print('__activate call', entity.name, trigger)
+    print('>', entity.name, '>>', trigger)
     conditionmap = []
-    def conditions():
-        for idx, condition in enumerate(effect['condition']):
-            print(condition)
-            if 'trigger' in condition.keys() and (trigger != condition['trigger']):
-                conditionmap.append(False)
-            elif condition['method'] == 'autotrue':
-                conditionmap.append(True)
-            else:
-                conditionmap.append(helpers.valueCheck(entity, condition, director, idx))
+    try:
+        effect = entity.effect
+    except AttributeError: #no effect
+        print(helpers.textColor('red', 'no effect'))
+        return
+    def conditions(index):
+        condition = effect['condition'][index]
+        if 'trigger' in condition.keys() and (trigger != condition['trigger']):
+            return False
+        elif condition['method'] == 'autotrue':
+            return True
+        else:
+            return(helpers.valueCheck(entity, condition, director, index))
     def effectCycler():
         for effectIndex in effect['effect']:
             actuator(effectIndex)
     def actuator(effectIndex):
-        # will try to access condition in effect: condition {True: [0,1], False: [2,3]}
+        def inner_check(condition, digitalBoolean):
+            '''
+            Returns true if bool and condition mismatch.
+            '''
+            if type(condition) == int and (digitalBoolean != conditions(index)):
+                return True
+            return False
+        def inner_check_list(subCondition, digitalBoolean):
+            for subSubCondition in subCondition:
+                if inner_check(condition, digitalBoolean):
+                    return True
+            return False
         try:
             flag = True
-            for boolean, conditionList in effectIndex['condition'].items():
-                boolConditionmap = set([idx for idx, y in enumerate(
-                    conditionmap) if y == helpers.bool(boolean)])
-                if type(conditionList) == int and conditionList not in boolConditionmap:
+            for index, (boolean, condition) in enumerate(effectIndex['condition'].items()):
+                digitalBoolean = helpers.bool(boolean)
+                if inner_check(condition, digitalBoolean):
                     flag = False
                     break
-                elif type(conditionList) == list:
-                    for conditionItem in conditionList:
-                        if type(conditionItem) == int and conditionItem not in boolConditionmap:
+                elif type(condition) == list:
+                    for subCondition in condition:
+                        # False: [0, 1]
+                        if inner_check(subCondition, digitalBoolean):
                             flag = False
                             break
-                        elif type(conditionItem) == list and set(conditionItem).isdisjoint(boolConditionmap):
+                        elif type(subCondition) == list and inner_check_list(subCondition, digitalBoolean):
                             flag = False
-                            break
                 if not flag:
                     break
             if flag:
-                if effectIndex['func'] == 'override':
-                    return [True, effect['param']]
-                else:
-                    print(helpers.textColor(
-                        'purple', effectIndex['condition']), helpers.textColor('green', effectIndex))
-                    activate(entity, effectIndex, effect)
+                print('   ', helpers.textColor(
+                    'purple', effectIndex['condition']), helpers.textColor('green', effectIndex))
+                activate(entity, effectIndex, effect)
             else:
-                print(helpers.textColor(
+                print('   ',helpers.textColor(
                     'purple', effectIndex['condition']), helpers.textColor('red', effectIndex))
-                try:
-                    if effect['func'] == 'override':
-                        return False
-                except KeyError:
-                    pass
         # effect has no condition
         except KeyError:
-            print('no condition', helpers.textColor('green', effectIndex),)
+            print('   no condition', helpers.textColor('green', effectIndex),)
             activate(entity, effectIndex, effect)
-
-    conditions()
     effectCycler()
     if toggle:
         print('____ exit activate call')

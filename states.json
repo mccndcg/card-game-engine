@@ -86,9 +86,46 @@
 			{"func": "getInput"}
 			]
 		},
+	"battlecrySummon": {
+		"condition": [
+			{
+				"trigger": "battlecrySummon",
+				"method": "autotrue"
+			}],
+			"target": [
+				{
+					"shorthand": "target",
+					"automatic": "yes"
+				},
+				{
+					"shorthand": "producer",
+					"automatic": "yes"
+				}],
+			"effect": [
+				{
+				"func": "modifyEntity",
+				"param":{
+					"target": [0],
+					"attribute": "location",
+					"method": "set",
+					"value": "board"
+					}
+				},
+				{
+				"func": "modifyEntity",
+				"param":{
+					"target": [1],
+					"trigger": "changePlayer",
+					"attribute": "player",
+					"method": "cycle",
+					"value": ["oppo", "self"]
+					}
+				}]
+		},
 	"activate_select": {
 		"condition": [
 			{
+				"trigger": "activate_select",
 				"method": "valCompare",
 				"a": "target",
 				"a_attri": "type",
@@ -98,7 +135,7 @@
 			{
 				"method": "valCompare",
 				"a": "target",
-				"a_attri": "spellSpeed",
+				"a_attri": "type",
 				"value": "Spell",
 				"operator": "="
 			}],
@@ -107,9 +144,6 @@
 				"shorthand": "target",
 				"automatic": "yes"}],
 		"effect": [
-			{
-				"func": "testFunc"
-			},
 			{
 			"condition": {"True": 1},
 			"func": "activateEntity",
@@ -128,34 +162,6 @@
 			}
 		]
 	},
-	"battlecrySummon_fizzle": {
-		"target": [
-			{
-			"shorthand": "producer",
-			"automatic": "yes"}
-			],
-		"effect": [
-			{
-				"func": "getInput"
-			},
-			{
-				"func": "feedbackGuy",
-				"param": {
-					"target": [0],
-					"trigger": "a"
-				}
-			}
-		]
-	},
-
-
-
-
-
-
-
-
-
 	"c": {
 			"condition": [{
 				"trigger": "c",
@@ -302,12 +308,6 @@
 		]
 		},
 	"init_game":{
-		"func": "state",
-		"condition": [{
-			"trigger": "init_game",
-			"method": "autotrue"
-			}
-		],
 		"target": [{
 			"shorthand": "topdeck",
 			"automatic": "yes",
@@ -363,12 +363,6 @@
 			]
 	},
 	"alpha":{
-		"func": "state",
-		"condition": [{
-			"trigger": "alpha",
-			"method": "autotrue"
-			}
-		],
 		"effect": [
 			{
 			"func": "testFunc"
@@ -685,10 +679,10 @@
 			}
 			]
 	},
-	"getInputxxxxxxxxxxxx":{
+	"getInputxx":{
 		"func": "state",
 		"condition": [{
-			"trigger": "getInput",
+			"trigger": "getInputx",
 			"method": "autotrue"
 			}
 		],

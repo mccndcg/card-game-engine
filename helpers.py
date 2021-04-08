@@ -29,10 +29,10 @@ def valueCheck(entity, reqt, director, idx):
         if reqt['operator'] == 'in':
             a, c = c, a
         if ops[reqt['operator']](a, c):
-            print(textColor('purple', idx), textColor('green', 'conditions pass'), a, c, reqt['a_attri'])
+            # print(textColor('purple', idx), textColor('green', 'conditions pass'), a, c, reqt['a_attri'])
             return True
         else:
-            print(textColor('purple', idx), textColor('red', 'conditions fail'), a, c, reqt['a_attri'])
+            # print(textColor('purple', idx), textColor('red', 'conditions fail'), a, c, reqt['a_attri'])
             return False
     def contextMan(method):
         if method == 'valCompare':
@@ -40,22 +40,26 @@ def valueCheck(entity, reqt, director, idx):
         elif method == 'valDelta':
             return ( actuator(getA('valCompare'), getC('valCompare')) and
             actuator(getA('valDelta_old'), getC('valDelta_old')) )
-    def getA(method):
+    def getA_entity():
+        entityA = deepcopy(reqt['a'])
         try:
-            reqt['a'] = deepcopy(getAlias(reqt['a_shorthand']))
+            entityA = getAlias(entityA)
         except KeyError:
-            reqt['a'] = deepcopy(reqt['a'])
+            pass
         # resolve a: the main entity
-        if reqt['a'] == 'this':
+        if entityA == 'this':
             a = entity
-        elif reqt['a'] == 'target':
+        elif entityA == 'target':
             a = entity.target
-        elif reqt['a'] == 'producer':
+        elif entityA == 'producer':
             a = director.producer
-        elif type(reqt['a']) is dict:
-            a = preFilter(reqt['a'], entity, director)
-        elif reqt['a'][:6] == 'target':
+        elif type(entityA) is dict:
+            a = preFilter(entityA, entity, director)
+        elif a[:6] == 'target':
             a = entity.targetStack[int(targ.strip('target#'))]
+        return a
+    def getA(method):
+        a = getA_entity()
         if reqt['a_attri'] == 'count':
             a = len(a)
         else:
@@ -80,25 +84,30 @@ def valueCheck(entity, reqt, director, idx):
                 c = reqt['value']
         # B is entity
         except KeyError:
-            print(textColor('red', 'ER valueCheck 2'))
-            b = preFilter(reqt['b'], entity, director)
+            entityB = deepcopy(reqt['b'])
+            try:
+                entityB = getAlias(entityB)
+            except KeyError:
+                pass
+            b = preFilter(entityB, entity, director)
             c = getattr(b, reqt['b_attri'])
         return c
     return contextMan(reqt['method'])
 
 
 def preFilter(filters, entity, director):
+    newfilter = deepcopy(filters)
     try:
-        if 'dynamic' in filters['modifiers']:
-            filters['conditions'] = parse(filters['conditions'], None, entity, director)
+        if 'dynamic' in newfilter['modifiers']:
+            newfilter['conditions'] = parse(newfilter['conditions'], None, entity, director)
     except KeyError:
         pass
-    if filters['entity'] == 'card':
-        return(Filter(director.roster['actors'], filters))
-    elif filters['entity'] == 'cue':
+    if newfilter['entity'] == 'card':
+        return(Filter(director.roster['actors'], newfilter))
+    elif newfilter['entity'] == 'cue':
         return director.cue
-    elif filters['entity'] == 'nexus':
-        return(Filter(director.roster['nexus'], filters))
+    elif newfilter['entity'] == 'nexus':
+        return(Filter(director.roster['nexus'], newfilter))
 
 
 def Filter(x, filterDict):
@@ -119,7 +128,6 @@ def Filter(x, filterDict):
     try:
         get = filterDict['get']
     except KeyError:
-        print(textColor('red', 'ER Filter 1'))
         return y
     if get['method'] == 'value':
         # toedit
@@ -163,7 +171,6 @@ def acquire_target(entity, targetList, director):
             filter = deepcopy(getAlias(index['shorthand']))
         # no shorthand
         except KeyError:
-            print(textColor('red', 'ER acquire_target 1'))
             filter = index['filter']
         try:
             filter['get']['count'] = index['quantity']
@@ -200,7 +207,6 @@ def parse(param, target, entity, director):
     Converts static text pointers {target#0} in param to dynamic values.
     '''
     def subparser(attributeString):
-        print(attributeString)
         targ, attri = attributeString.split('.', 1)
         if targ == 'director':
             return getattr(director, attri)
@@ -238,11 +244,11 @@ def getAlias(shortname):
         try:
             return alias[shortname['shorthand']]
         except KeyError:
-            print(textColor('red', 'ER getAlias 1'))
+            #print(textColor('red', 'ER getAlias 1'))
             return shortname
     elif type(shortname) is str:
         try:
             return alias[shortname]
         except KeyError:
-            print(textColor('red', 'ER getAlias 2'))
+            #print(textColor('red', 'ER getAlias 2'))
             return shortname

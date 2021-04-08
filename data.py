@@ -36,6 +36,7 @@ with open('set.json', encoding="utf8") as json_file:
     for dictionary in json.load(json_file):
         cardCode = dictionary['cardCode']
         db[cardCode] = {}
+        # convert digits in json to actual numbers
         for key, value in dictionary.items():
             if type(value) == 'string' and value.isnumeric():
                 value = int(value)
@@ -47,9 +48,9 @@ with open('set.json', encoding="utf8") as json_file:
         db['DUMMY69'].update(dummyval['dummy'])
         db['DUMMYTARGET'].update(dummyval['defender'])
 
-def init_override():
-    with open('override.json', encoding="utf8") as json_file:
-        return {k: v for k, v in json.load(json_file).items()}
+with open('set_effects.json', encoding="utf8") as json_file:
+    for cardCode, effect in json.load(json_file).items():
+        db[cardCode]['effect'] = effect
 
 def init_state():
     with open('states.json', encoding="utf8") as json_file:

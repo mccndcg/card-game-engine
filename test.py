@@ -1,6 +1,3 @@
-x = {'b': 2, 'a': 1, 'c':5}
-y = [{'a': 1, 'b': 2}, {'c': 3}]
-if x not in y:
-    print('not')
-else:
-    print('exists')
+x = {'a': 5, 'b': 2}
+for index, (a, b) in enumerate(x.items()):
+    print(index, a, b)

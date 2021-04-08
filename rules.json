@@ -8,7 +8,7 @@
 				"a_attri": "cost",
 				"b": "self nexus",
 				"b_attri": "mana",
-				"operator": ">"}
+				"operator": "<="}
 			]
-  }
+	}
 }

@@ -17153,43 +17153,7 @@
     "supertype": "",
     "type": "Unit",
     "collectible": true,
-    "set": "Set2",
-    "effect":
-    {
-      "variable": [{
-        "name": "heimerlvl",
-			  "entity": "unit",
-			  "init_val": 0}
-
-      ],
-      "condition": [
-        {
-          "trigger": "changeLocation",
-          "method": "valDelta",
-          "a": "target",
-          "a_attri": "location",
-          "value": "graveyard",
-          "value_old": "board",
-          "operator": "="
-  			}
-      	],
-        "target":  [{
-          "shorthand": "self board",
-          "automatic": "yes"}
-        ],
-        "effect": [{
-          "condition": {"True": [0]},
-    			"func": "modifyEntity",
-    			"param": {
-            "target": [0],
-    				"trigger": "modifyEntity",
-    				"attribute": "heimerlvl",
-    				"value": 1,
-    				"method": "add"
-    				}
-    			}
-        ]
-    }
+    "set": "Set2"
   },
   {
     "associatedCards": [],
