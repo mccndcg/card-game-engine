@@ -44,5 +44,50 @@
 				}
 			}
 		]
+	},
+	"entity battle": {
+		"condition": [
+			{
+				"method": "autotrue",
+				"trigger": "entity battle"
+			}
+		],
+		"target": [
+			{
+				"shorthand": "target"
+			}],
+		"effect": [
+			{
+				"func": "callFeedbackGuy",
+				"param":{
+					"target": [0],
+					"trigger": "strike"
+					}
+			}
+		]
+
+	},
+	"strike": {
+		"condition": [
+			{
+				"method": "autotrue",
+				"trigger": "strike"
+			}
+		],
+		"target": [
+			{
+				"shorthand": "target"
+			}],
+		"effect": [
+			{
+			"func": "modifyEntity",
+			"param":{
+				"modifiers": ["dynamic"],
+				"target": [0],
+				"attribute": "health",
+				"method": "set",
+				"value": "0.defender.attack"
+			}}
+		]
 	}
 }

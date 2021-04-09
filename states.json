@@ -1,4 +1,478 @@
 {
+	"resolve battle": {
+		"target": [
+				{
+					"filter":  {
+						"modifiers": ["dynamic"],
+						"entity": "card",
+						"conditions": {
+							"owner": "producer.roundturn",
+							"location": "battlers",
+							"type": "Unit"
+						}}
+				}],
+		"effect": [
+			{
+				"func": "callFeedbackGuy",
+				"param":{
+					"target": [0],
+					"trigger": "entity battle"
+					}
+			},
+			{
+				"func": "exitFunc"
+			}
+		]
+	},
+	"defender setup": {
+		"condition": [
+				{
+					"method": "valCompare",
+					"a":  {
+						"modifiers": ["dynamic"],
+						"entity": "card",
+						"conditions": {
+							"owner": "producer.player",
+							"location": "board",
+							"type": "Unit"
+						}},
+					"a_attri": "count",
+					"value": 0,
+					"operator": ">"
+				},
+				{
+					"method": "valCompare",
+					"a":  {
+						"modifiers": ["dynamic"],
+						"entity": "card",
+						"conditions": {
+							"owner": "producer.player",
+							"location": "battlers",
+							"type": "Unit"
+						}},
+					"a_attri": "count",
+					"value": 0,
+					"operator": ">"}
+		],
+		"effect": [
+			{"func": "resetStack",
+			"param": {"stack": "options"}},
+			{
+			"condition": {"True": 0},
+			"func": "addStack",
+			"param": {
+					"target": ["defend"],
+					"stack": "options"}
+			},
+			{
+			"func": "addStack",
+			"param": {
+					"target": ["commit"],
+					"stack": "options"}
+			},
+			{
+			"func": "addStack",
+			"param": {
+					"target": ["activate"],
+					"stack": "options"}
+			},
+			{
+			"condition": {"True": 1},
+			"func": "addStack",
+			"param": {
+					"target": ["undefend"],
+					"stack": "options"}
+			},
+			{
+			"func": "printStack",
+			"param": {
+					"stack": "options"}
+			},
+			{
+			"func": "getInput"
+			}
+		]
+	},
+	"set defend": {
+		"condition": [
+			{
+				"trigger": "defend",
+				"method": "autotrue"
+			}],
+			"target": [
+					{
+						"filter":  {
+							"modifiers": ["dynamic"],
+							"entity": "card",
+							"conditions": {
+								"owner": "producer.player",
+								"location": "board",
+								"type": "Unit"
+							}}
+					},
+					{
+						"shorthand": "producer.inputEntityLast"
+					},
+					{
+						"filter":  {
+							"modifiers": ["dynamic"],
+							"entity": "card",
+							"conditions": {
+								"owner": "producer.opposite",
+								"location": "battlers",
+								"type": "Unit"
+							}}
+					},
+					{
+						"shorthand": "producer.inputEntity"
+					}],
+		"effect": [
+			{
+			"func": "resetStack",
+			"param": {
+					"stack": "options"}
+			},
+			{
+			"func": "addStack",
+			"param": {
+					"target": [0],
+					"stack": "options"}
+			},
+			{
+			"func": "printStack",
+			"param": {
+					"stack": "options"}
+			},
+			{
+			"func": "getInput"
+			},
+			{
+			"func": "resetStack",
+			"param": {
+					"stack": "options"}
+			},
+			{
+			"func": "addStack",
+			"param": {
+					"target": [2],
+					"stack": "options"}
+			},
+			{
+			"func": "printStack",
+			"param": {
+					"stack": "options"}
+			},
+			{
+			"func": "getInput"
+			},
+			{
+			"func": "modifyEntity",
+			"param":{
+				"target": [1],
+				"attribute": "location",
+				"method": "set",
+				"value": "battlers"
+				}
+			},
+			{
+			"func": "modifyEntity",
+			"param":{
+				"target": [3],
+				"attribute": "defender",
+				"method": "set",
+				"value_pointer": 1
+				}
+			}
+		]
+	},
+	"set attack": {
+		"condition": [
+			{
+				"trigger": "attack",
+				"method": "autotrue"
+			}],
+			"target": [
+					{
+						"filter":  {
+							"modifiers": ["dynamic"],
+							"entity": "card",
+							"conditions": {
+								"owner": "producer.player",
+								"location": "board",
+								"type": "Unit"
+							}}
+					},
+					{
+						"shorthand": "producer.inputEntity"
+					}],
+		"effect": [
+			{
+			"func": "resetStack",
+			"param": {
+					"stack": "options"}
+			},
+			{
+			"condition": {"True": 0},
+			"func": "addStack",
+			"param": {
+					"target": [0],
+					"stack": "options"}
+			},
+			{
+			"func": "printStack",
+			"param": {
+					"stack": "options"}
+			},
+			{
+			"func": "getInput"
+			},
+			{
+			"func": "modifyEntity",
+			"param":{
+				"target": [1],
+				"attribute": "location",
+				"method": "set",
+				"value": "battlers"
+				}
+			}
+		]
+	},
+	"unset attack": {
+		"condition": [
+			{
+				"trigger": "retreat",
+				"method": "autotrue"
+			}],
+			"target": [
+					{
+						"filter":  {
+							"modifiers": ["dynamic"],
+							"entity": "card",
+							"conditions": {
+								"owner": "producer.player",
+								"location": "battlers",
+								"type": "Unit"
+							}}
+					},
+					{
+						"shorthand": "producer.inputEntity"
+					}],
+		"effect": [
+			{
+			"func": "resetStack",
+			"param": {
+					"stack": "options"}
+			},
+			{
+			"condition": {"True": 0},
+			"func": "addStack",
+			"param": {
+					"target": [0],
+					"stack": "options"}
+			},
+			{
+			"func": "printStack",
+			"param": {
+					"stack": "options"}
+			},
+			{
+			"func": "getInput"
+			},
+			{
+			"func": "modifyEntity",
+			"param":{
+				"target": [1],
+				"attribute": "location",
+				"method": "set",
+				"value": "board"
+				}
+			}
+		]
+	},
+	"unset retreat": {
+		"condition": [
+			{
+				"trigger": "undefend",
+				"method": "autotrue"
+			}],
+			"target": [
+					{
+						"filter":  {
+							"modifiers": ["dynamic"],
+							"entity": "card",
+							"conditions": {
+								"owner": "producer.player",
+								"location": "battlers",
+								"type": "Unit"
+							}}
+					},
+					{
+						"shorthand": "producer.inputEntity"
+					}],
+		"effect": [
+			{
+			"func": "resetStack",
+			"param": {
+					"stack": "options"}
+			},
+			{
+			"condition": {"True": 0},
+			"func": "addStack",
+			"param": {
+					"target": [0],
+					"stack": "options"}
+			},
+			{
+			"func": "printStack",
+			"param": {
+					"stack": "options"}
+			},
+			{
+			"func": "getInput"
+			},
+			{
+			"func": "modifyEntity",
+			"param":{
+				"target": [1],
+				"attribute": "location",
+				"method": "set",
+				"value": "board"
+				}
+			}
+		]
+	},
+	"battle": {
+		"condition": [
+			{
+				"trigger": "battle",
+				"method": "autotrue"
+			}],
+		"effect": [
+			{
+				"func": "modifyState",
+				"param": {"state": "battle setup"}
+			}
+		]
+	},
+	"commit to battle": {
+		"condition": [
+			{
+				"trigger": "commit",
+				"method": "autotrue"
+			},
+			{
+				"method": "valCompare",
+				"a": "producer",
+				"a_attri": "state",
+				"value": "battle setup",
+				"operator": "="
+			},
+			{
+				"method": "valCompare",
+				"a": "producer",
+				"a_attri": "state",
+				"value": "defender setup",
+				"operator": "="
+			}],
+		"target": [
+			{
+				"shorthand": "producer"
+			}],
+		"effect": [
+			{
+			"func": "modifyEntity",
+			"param":{
+				"trigger": "set opposite",
+				"target": [0],
+				"attribute": "player",
+				"method": "cycle",
+				"value": ["oppo", "self"]
+				}
+			},
+			{
+				"condition": {"True": 2},
+				"func": "modifyState",
+				"param": {"state": "resolve battle"}
+			},
+			{
+				"condition": {"True": 1},
+				"func": "modifyState",
+				"param": {"state": "defender setup"}
+			}
+		]
+	},
+	"battle setup": {
+		"condition": [
+				{
+					"method": "valCompare",
+					"a":  {
+						"modifiers": ["dynamic"],
+						"entity": "card",
+						"conditions": {
+							"owner": "producer.player",
+							"location": "board",
+							"type": "Unit"
+						}},
+					"a_attri": "count",
+					"value": 0,
+					"operator": ">"
+				},
+				{
+					"method": "valCompare",
+					"a":  {
+						"modifiers": ["dynamic"],
+						"entity": "card",
+						"conditions": {
+							"owner": "producer.player",
+							"location": "battlers",
+							"type": "Unit"
+						}},
+					"a_attri": "count",
+					"value": 0,
+					"operator": ">"}
+		],
+		"effect": [
+			{"func": "resetStack",
+			"param": {"stack": "options"}},
+			{
+			"condition": {"True": 0},
+			"func": "addStack",
+			"param": {
+					"target": ["attack"],
+					"stack": "options"}
+			},
+			{
+			"func": "addStack",
+			"param": {
+					"target": ["challenge"],
+					"stack": "options"}
+			},
+			{
+			"condition": {"True": 1},
+			"func": "addStack",
+			"param": {
+					"target": ["commit"],
+					"stack": "options"}
+			},
+			{
+			"condition": {"True": 1},
+			"func": "addStack",
+			"param": {
+					"target": ["retreat"],
+					"stack": "options"}
+			},
+			{
+			"func": "printStack",
+			"param": {
+					"stack": "options"}
+			},
+			{
+			"func": "getInput"
+			}
+
+
+		]
+	},
 	"round_end": {
 		"target": [
 			{
@@ -343,18 +817,27 @@
 						"modifiers": ["dynamic"],
 						"entity": "nexus",
 						"conditions": {
-							"owner": "producer.naturalturn"
-						},
-						"get": {
-				      "method": "pick",
-				      "count": 1,
-				      "reverse": "False"
-				    }
+							"owner": "producer.player"
+						}
 					},
 	      "a_attri": "rally",
 	      "value": 1,
 	      "operator": "="
-	    }
+	    },
+			{
+				"method": "valCompare",
+	      "a": {
+	        "modifiers": ["dynamic"],
+	        "entity": "card",
+	        "conditions": {
+	          "owner": "producer.player",
+	          "location": "board",
+	          "type": "Unit"
+	        }},
+	      "a_attri": "count",
+	      "value": 0,
+	      "operator": ">"
+			}
 			],
 		"effect": [
 			{"func": "resetStack",
@@ -367,7 +850,7 @@
 					"stack": "options"}
 			},
 			{
-			"condition": {"True": 1},
+			"condition": {"True": [1, 2]},
 			"func": "addStack",
 			"param": {
 					"target": ["battle"],
@@ -674,6 +1157,9 @@
 				"method": "set",
 				"value": "hand"
 				}
+			},
+			{
+				"func": "createDummy"
 			},
 			{
 			"func": "modifyState",

@@ -77,6 +77,8 @@ class producer(object):
         self.naturalturn = 'self'
         self.target = None
         self.targetList = None
+        self.inputEntity = None
+        self.inputIndex = None
         for state, effect in init_state().items():
             setattr(self, state, stateObject(effect, state))
             try:
@@ -84,6 +86,12 @@ class producer(object):
                     director.createSubscriber(getattr(self, state), condition)
             except KeyError: # no condition
                 pass
+
+    def updateInput(self, index, entity):
+        self.inputEntityLast = self.inputEntity
+        self.inputEntity = entity
+        self.inputIndexLast = self.inputIndex
+        self.inputIndex = index
 
     def modifyValue(self, variable, value, operator):
         modifier(self, variable, value, operator)
@@ -127,8 +135,6 @@ class card(object):
         self.onPlay = 0
         self.target = []
 
-    def __repr__(self):
-        return f'({self.name} {self.location} {self.index} {self.owner} {self.type})'
 
     def __str__(self):
         return f'({self.name} {self.location} {self.index} {self.owner} {self.type})'
@@ -177,7 +183,7 @@ class spielberg(object):
     def __init__(self):
         print('_init_ created object director')
         self.cue = Cue('')
-        self.roster = {'actors': {}, 'nexus': {}}
+        self.roster = {'card': {}, 'nexus': {}}
         self.triggerDirectory = {}
         self.overrideDirectory = {}
         self.constitution = {}
@@ -221,8 +227,8 @@ class spielberg(object):
                 x = deepcopy(dictVal['reference'])
             except KeyError:
                 x = card(db[dictVal['cardCode']], dictVal)
-            # add to actors database
-            self.roster['actors'].update({x.uid: x})
+            # add to card database
+            self.roster['card'].update({x.uid: x})
             # 'set origin'
             try:
                 x.creator = dictVal['origin'].name

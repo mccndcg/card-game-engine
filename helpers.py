@@ -1,18 +1,35 @@
+from functools import reduce
 from random import choice
 from data import alias, ops, colors
 from copy import deepcopy
 
-# def moveCheck():
-#     '''
-#     Determines the validity of a move (ex. requirements, valid targets)
-#     '''
-#     if entity.type == '':
-#         as
-#     elif entity.type == '':
-#         as
 
 toggle = True
 toggle = False
+
+
+def string2entity(entity, alias, director):
+    if alias == 'this':
+        return(entity)
+    elif alias == 'target':
+        return(entity.target)
+    elif alias == 'producer':
+        return(director.producer)
+    elif alias == 'cue':
+        return(director.cue)
+    elif alias == 'director':
+        return(director)
+    elif alias == 'producer.inputEntity':
+        return(director.producer.inputEntity)
+    elif alias == 'producer.inputEntityLast':
+        return(director.producer.inputEntityLast)
+    elif alias == 'stack':
+        return(getattr(director, targetEntity['stack']))
+    elif alias == 'none':
+        return(None)
+    else:
+        return False
+
 
 def valueCheck(entity, reqt, director, idx):
     '''
@@ -47,24 +64,25 @@ def valueCheck(entity, reqt, director, idx):
         except KeyError:
             pass
         # resolve a: the main entity
-        if entityA == 'this':
-            a = entity
-        elif entityA == 'target':
-            a = entity.target
-        elif entityA == 'producer':
-            a = director.producer
-        elif entityA == 'cue':
-            a = director.cue
+        a = string2entity(entity, entityA, director)
+        if a:
+            return a
         elif type(entityA) is dict:
-            a = preFilter(entityA, entity, director)
+            return(preFilter(entityA, entity, director))
         elif a[:6] == 'target':
-            a = entity.targetStack[int(targ.strip('target#'))]
+            return(entity.targetStack[int(targ.strip('target#'))])
         return a
     def getA(method):
         a = getA_entity()
         if reqt['a_attri'] == 'count':
             a = len(a)
         else:
+            # patchwork for filter{get: 1}. filter function returns a []
+            try:
+                if len(a) == 1:
+                    a = a[0]
+            except TypeError:
+                pass
             try:
                 if method == 'valDelta_old':
                     a = getattr(a, 'old_' + reqt['a_attri'])
@@ -109,12 +127,11 @@ def preFilter(filters, entity, director):
             newfilter['conditions'] = parse(newfilter['conditions'], None, entity, director)
     except KeyError:
         pass
-    if newfilter['entity'] == 'card':
-        return(Filter(director.roster['actors'], newfilter))
+    entity = newfilter['entity']
+    if entity in ['card', 'nexus']:
+        return(Filter(director.roster[entity], newfilter))
     elif newfilter['entity'] == 'cue':
         return director.cue
-    elif newfilter['entity'] == 'nexus':
-        return(Filter(director.roster['nexus'], newfilter))
 
 
 def Filter(x, filterDict):
@@ -155,22 +172,14 @@ def Filter(x, filterDict):
 
 def acquire_target(entity, targetEntity, director):
     if toggle:
-        print('_enter acquire_target')
+        print(f"_enter acquire_target {targetEntity}")
     if type(targetEntity) is list:
         targetEntity = choice(targetEntity)
     try:
-        if targetEntity['shorthand'] == 'target':
-            return(entity.target)
-        elif targetEntity['shorthand'] == "this":
-            return(entity)
-        elif targetEntity['shorthand'] == "producer":
-            return(director.producer)
-        elif targetEntity['shorthand'] == "producer.inputEntity":
-            return(director.producer.inputEntity)
-        elif targetEntity['shorthand'] == "stack":
-            return(getattr(director, targetEntity['stack']))
-        elif targetEntity['shorthand'] == "cue":
-            return(director.cue)
+        a = string2entity(entity, targetEntity['shorthand'], director)
+        if a is not False:
+            return a
+        print(targetEntity)
         filter = deepcopy(getAlias(targetEntity['shorthand']))
     # no shorthand
     except KeyError:
@@ -183,10 +192,6 @@ def acquire_target(entity, targetEntity, director):
     except KeyError:
         pass
     return(preFilter(filter, entity, director))
-    # if targetEntity['automatic'] == 'yes':
-    #     return(preFilter(filter, entity, director))
-    # if targetEntity['automatic'] == 'no':
-    #     return(choice(preFilter(filter, entity, director)))
     if toggle:
         print('_exit acquire_target')
 
@@ -212,15 +217,14 @@ def parse(param, target, entity, director):
     Converts static text pointers {target#0} in param to dynamic values.
     '''
     def subparser(attributeString):
-        targ, attri = attributeString.split('.', 1)
-        if targ == 'director':
-            return getattr(director, attri)
-        elif targ == 'producer':
-            return getattr(director.producer, attri)
-        elif targ == 'this':
-            return getattr(entity, attri)
+        getter = lambda a, b: getattr(a, b)
+        targ = attributeString.split('.')
+        a = string2entity(entity, targ[0], director)
+        if a is not False:
+            targ[0] = a
         else:
-            return getattr(target[int(targ.strip('target#'))], attri)
+            targ[0] = target[int(targ[0])]
+        return reduce(getter, targ)
     def walker(parent, index, entity):
         if type(entity) is dict:
             for k, v in entity.items():

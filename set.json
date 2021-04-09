@@ -17076,7 +17076,7 @@
     "levelupDescriptionRaw": "",
     "flavorText": "dummy",
     "artistName": "dummy",
-    "name": "dummy",
+    "name": "OPPONENT",
     "cardCode": "DUMMY69",
     "keywords": [],
     "keywordRefs": [],
@@ -17087,9 +17087,9 @@
     "subtype": "",
     "subtypes": [],
     "supertype": "",
-    "type": "dummy",
+    "type": "Unit",
     "collectible": true,
-    "set": "dummy",
+    "set": "OPPONENT",
     "effect": {"test": "Test"}
   },
   {
@@ -17104,7 +17104,7 @@
     "levelupDescriptionRaw": "",
     "flavorText": "dummy",
     "artistName": "dummy",
-    "name": "dummy",
+    "name": "DUMMY SELF",
     "cardCode": "DUMMYTARGET",
     "keywords": [],
     "keywordRefs": [],
@@ -17115,9 +17115,9 @@
     "subtype": "",
     "subtypes": [],
     "supertype": "",
-    "type": "dummy",
+    "type": "Unit",
     "collectible": true,
-    "set": "dummy",
+    "set": "DUMMY SELF",
     "effect": {"test": "Test"}
   },
   {

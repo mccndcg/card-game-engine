@@ -5,7 +5,8 @@ import helpers
 
 toggle = True
 toggle = False
-
+command = []
+#command = ['battle', 'attack', '0', 'commit', 'defend', '0', '0', 'commit']
 
 def activateEntity(entity, b):
     def contextMan():
@@ -65,11 +66,7 @@ def feedbackGuy(entity, triggerStr):
         target for listener.
     '''
     def contextMan():
-        # to force feedback
-        if type(triggerStr) is list:
-            for subtrigger in triggerStr:
-                feedbackGuy(entity, subtrigger)
-        elif type(entity) is list:
+        if type(entity) is list:
             for subentity in entity:
                 feedbackGuy(subentity, triggerStr)
         else:
@@ -84,25 +81,31 @@ def feedbackGuy(entity, triggerStr):
             pass
     if toggle:
         print('_enter feedback', entity, triggerStr)
-    if type(triggerStr) == dict:
-        triggerStr = triggerStr['trigger']
     contextMan()
+
+def callFeedbackGuy(entity, script):
+    feedbackGuy(entity, script['trigger'])
+
 
 def getInput():
     print('get input: ')
+    def printmanual(entity,title):
+        print(helpers.textColor('yellow', f"-------{title}------"))
+        for x in entity:
+            print(x)
     def dummytest(inputString):
         if inputString == 'create':
-            createEntity({'cardCode': 'DUMMY69', 'location': 'hand', 'owner': 'self'})
-            createEntity({'cardCode': 'DUMMYTARGET', 'location': 'board', 'owner': 'oppo'})
+            createEntity({'cardCode': 'DUMMYTARGET', 'location': 'board', 'owner': 'self'})
+            createEntity({'cardCode': 'DUMMY69', 'location': 'board', 'owner': 'oppo'})
         elif inputString == 'kill':
-            x = [x for x in director.roster['actors'].values() if x.cardCode == 'DUMMY69']
+            x = [x for x in director.roster['card'].values() if x.cardCode == 'DUMMY69']
             modifyEntity(x, {'attribute': 'location', 'value': 'graveyard', 'method': 'set'})
         elif inputString == 'summon':
-            x = [x for x in director.roster['actors'].values() if x.cardCode == 'DUMMY69']
+            x = [x for x in director.roster['card'].values() if x.cardCode == 'DUMMY69']
             modifyEntity(x, {'attribute': 'location', 'value': 'board', 'method': 'set'})
-        elif inputString == 'show hand':
-            x = [x for x in director.roster['actors'].values() if x.location == 'hand']
-            print(x)
+        elif inputString[:4] == 'show':
+            printmanual([x for x in director.roster['card'].values() if x.location == inputString[5:] and x.owner == 'self'], 'SELF')
+            printmanual([x for x in director.roster['card'].values() if x.location == inputString[5:] and x.owner == 'oppo'], 'OPPO')
         elif inputString == 'cue':
             print(director.cue.line)
         elif inputString == 'state':
@@ -114,12 +117,16 @@ def getInput():
         else:
             print(helpers.textColor('red', 'ERR 01: Command not available. Choose from stack.'))
         getInput()
-    inp = input()
+    if len(command) > 0:
+        inp = command[0]
+        command.pop(0)
+    else:
+        inp = input()
     if inp.isnumeric():
         if len(inp) == 1:
-            director.producer.inputIndex = inp
             try:
-                director.producer.inputEntity = director.options[int(inp)]
+                inputEntity = director.options[int(inp)]
+                director.producer.updateInput(inp, inputEntity)
             except IndexError:
                 print(helpers.textColor('red', 'ERR 02: Selection not in stack.'))
                 getInput()
@@ -345,36 +352,37 @@ def activateCall(entity, trigger):
 
 
 def activate(entity, effectIndex, effect):
+    # cannot send just target, because not all effects have target
     '''
     Actuator function to call effect functions.
     '''
     if toggle:
         print('__activate')
     function = effectIndex['func']
-    # hardcoded
-    if function == 'feedbackGuy':
-        globals()[function](None, effectIndex['param']['trigger'])
+    if 'target' in effect:
+        target = [helpers.acquire_target(entity, x, director) for x in effect['target']]
     try:
-        param = effectIndex['param']
+        param = helpers.deepcopy(effectIndex['param'])
         param.update({"origin": entity})
         try:
             if 'dynamic' in param['modifiers']:
-                param = helpers.parse(param, [], entity, director)
+                param = helpers.parse(param, target, entity, director)
         except KeyError:
             pass
         # subeffect level target
         if 'target' in param:
             for j in param['target']:
                 #target['pass']
+                if 'value_pointer' in param:
+                    param['value'] = target[param['value_pointer']]
                 if type(j) is str:
                     globals()[function](j, param)
                 #target[0,1,2]
                 elif type(j) is int:
-                    target = helpers.acquire_target(entity, effect['target'][j], director)
                     if target is None:
                         return
                     else:
-                        globals()[function](target, param)
+                        globals()[function](target[j], param)
         else:
             globals()[function](param)
     except KeyError:
@@ -417,6 +425,10 @@ def createDeck(script):
 
 def printer(lines):
     print(lines)
+
+def createDummy():
+    createEntity({'cardCode': 'DUMMYTARGET', 'location': 'board', 'owner': 'self'})
+    createEntity({'cardCode': 'DUMMY69', 'location': 'board', 'owner': 'oppo'})
 
 
 def addStack(entity, script):
