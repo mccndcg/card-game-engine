@@ -1,4 +1,326 @@
 {
+	"round_end": {
+		"target": [
+			{
+				"shorthand": "producer"
+			}],
+		"effect": [
+			{
+			"func": "modifyEntity",
+			"param":{
+				"target": [0],
+				"attribute": "roundturn",
+				"method": "cycle",
+				"value": ["oppo", "self"]
+				}
+			},
+			{
+			"func": "modifyEntity",
+			"param":{
+				"modifiers": ["dynamic"],
+				"target": [0],
+				"attribute": "naturalturn",
+				"method": "set",
+				"value": "producer.roundturn"
+				}
+			},
+			{
+			"func": "modifyEntity",
+			"param":{
+				"modifiers": ["dynamic"],
+				"target": [0],
+				"attribute": "player",
+				"method": "set",
+				"value": "producer.roundturn"
+				}
+			},
+			{
+				"func": "modifyState",
+				"param":{"state": "round_start"}
+			}
+		]
+	},
+	"pass turn": {
+		"condition": [
+			{
+				"trigger": "pass",
+				"method": "autotrue"
+			},
+			{
+				"method": "valCompare",
+				"a": "cue",
+				"a_attri": "prevCommand",
+				"value": "pass",
+				"operator": "="
+			}],
+		"target": [
+			{
+				"shorthand": "producer"
+			},
+			{
+				"shorthand": "cue"
+			}
+			],
+		"effect": [
+			{
+				"condition": {"False": 1},
+				"func": "modifyEntity",
+				"param":{
+					"target": [0],
+					"attribute": "naturalturn",
+					"method": "cycle",
+					"value": ["oppo", "self"]
+					}
+				},
+			{
+				"condition": {"False": 1},
+				"func": "modifyEntity",
+				"param":{
+					"trigger": "set opposite",
+					"target": [0],
+					"attribute": "player",
+					"method": "cycle",
+					"value": ["oppo", "self"]
+					}
+			},
+			{
+				"condition": {"True": 1},
+				"func": "modifyEntity",
+				"param":{
+					"target": [1],
+					"attribute": "command",
+					"method": "set",
+					"value": "end round"
+					}
+			},
+			{
+				"condition": {"True": 1},
+				"func": "modifyState",
+				"param":{"state": "round_end"}
+			}
+		]},
+	"resolve": {
+		"condition": [
+			{
+				"trigger": "pass respond",
+				"method": "autotrue"
+			}],
+		"target": [
+			{
+				"shorthand": "stack",
+				"stack": "spellStack"
+			},
+			{
+				"shorthand": "producer"
+			}],
+		"effect": [
+			{
+				"func": "activateEntity",
+				"param":{
+					"target": [0],
+					"trigger": "activateSpell"}
+			},
+			{
+			"func": "modifyEntity",
+			"param":{
+				"target": [1],
+				"attribute": "naturalturn",
+				"method": "cycle",
+				"value": ["oppo", "self"]
+				}
+			},
+			{
+			"func": "modifyEntity",
+			"param":{
+				"trigger": "set opposite",
+				"modifiers": ["dynamic"],
+				"target": [1],
+				"attribute": "player",
+				"method": "set",
+				"value": "producer.naturalturn"
+				}
+			},
+			{
+				"func": "modifyState",
+				"param": {"state": "a"}
+			}]
+		},
+
+	"b": {
+		"condition": [
+			{
+				"method": "valCompare",
+				"a": {
+					"modifiers": ["dynamic"],
+					"entity": "card",
+					"conditions": {
+						"owner": "producer.player",
+						"location": "hand",
+						"type": "Unit"
+					}},
+				"a_attri": "count",
+				"value": 0,
+				"operator": ">"}
+			],
+		"effect": [
+			{"func": "resetStack",
+			"param": {"stack": "options"}},
+			{
+			"condition": {"True": 0},
+			"func": "addStack",
+			"param": {
+					"target": ["respond"],
+					"stack": "options"}
+			},
+			{
+			"func": "addStack",
+			"param": {
+					"target": ["pass respond"],
+					"stack": "options"}
+			},
+			{
+			"func": "printStack",
+			"param": {"stack": "options"}
+			},
+			{
+			"func": "getInput"
+			}
+			]
+		},
+	"respond": {
+		"condition": [{
+			"trigger": "respond",
+			"method": "autotrue"
+			},
+			{
+				"method": "valCompare",
+				"a": "producer",
+				"a_attri": "inputEntity",
+				"a_attri1": "spellSpeed",
+				"value": ["Burst", "Focus"],
+				"operator": "in"
+			},
+			{
+				"method": "valCompare",
+				"a": "producer",
+				"a_attri": "inputEntity",
+				"a_attri1": "spellSpeed",
+				"value": "Fast",
+				"operator": "="
+			},
+			{
+				"method": "valCompare",
+				"a":  {
+					"modifiers": ["dynamic"],
+			    "entity": "card",
+			    "conditions": {
+			      "owner": "producer.player",
+			      "location": "hand",
+						"spellSpeed": ["Burst", "Fast"]
+			    }},
+				"a_attri": "count",
+				"value": 0,
+				"operator": ">"}
+		],
+		"target": [
+			{
+			"filter": {
+					"modifiers": ["dynamic"],
+			    "entity": "card",
+			    "conditions": {
+			      "owner": "producer.player",
+			      "location": "hand",
+						"spellSpeed": ["Burst", "Fast"]
+			    }},
+			"automatic": "yes"},
+			{
+				"shorthand": "producer.inputEntity",
+				"automatic": "yes"},
+			{
+				"shorthand": "producer"
+			},
+			{
+				"shorthand": "producer",
+				"stack": "spellStack"
+			}
+		],
+		"effect": [
+
+			{"func": "resetStack",
+			"param": {"stack": "options"}},
+			{"func": "addStack",
+			"param": {
+				"target": [0],
+				"stack": "options"}
+			},
+			{"func": "printStack",
+			"param": {"stack": "options"}
+			},
+			{"func": "getInput"},
+			{
+			"condition": {"True": 1},
+			"func": "modifyEntity",
+			"param":{
+				"target": [1],
+				"attribute": "location",
+				"method": "set",
+				"value": "graveyard"
+				}
+			},
+			{
+			"condition": {"True": 1},
+			"func": "activateEntity",
+			"param":{
+				"target": [1],
+				"trigger": "activateSpell"
+				}
+			},
+			{
+			"condition": {"True": 2},
+			"func": "modifyEntity",
+			"param":{
+				"target": [1],
+				"attribute": "location",
+				"method": "set",
+				"value": "spellStack"
+				}
+			},
+			{
+			"condition": {"True": 2},
+			"func": "addStack",
+			"param":{
+				"target": [1],
+				"stack": "spellStack"
+				}
+			},
+			{
+				"func": "printStack",
+				"param": {"stack": "spellStack"}
+			},
+			{
+				"condition": {"True": 2},
+				"func": "modifyEntity",
+				"param":{
+					"target": [2],
+					"trigger": "changePlayer",
+					"attribute": "player",
+					"method": "cycle",
+					"value": ["oppo", "self"]
+					}
+			},
+			{
+				"func": "printStack",
+				"param": {"stack": "spellStack"}
+			},
+			{
+				"condition": {"False": 3},
+				"func": "feedbackGuy",
+				"param":{
+					"trigger": "pass respond"
+					}
+			}
+			]
+		},
 	"a": {
 		"condition": [
 			{
@@ -16,7 +338,19 @@
 	      "operator": ">"},
 	    {
 	      "method": "valCompare",
-	      "a_shorthand": "self nexus",
+	      "a":
+					{
+						"modifiers": ["dynamic"],
+						"entity": "nexus",
+						"conditions": {
+							"owner": "producer.naturalturn"
+						},
+						"get": {
+				      "method": "pick",
+				      "count": 1,
+				      "reverse": "False"
+				    }
+					},
 	      "a_attri": "rally",
 	      "value": 1,
 	      "operator": "="
@@ -58,7 +392,44 @@
 		"condition": [{
 			"trigger": "activate",
 			"method": "autotrue"
-			}
+			},
+			{
+				"method": "valCompare",
+				"a": "producer",
+				"a_attri": "inputEntity",
+				"a_attri1": "type",
+				"value": "Unit",
+				"operator": "="
+			},
+			{
+				"method": "valCompare",
+				"a": "producer",
+				"a_attri": "inputEntity",
+				"a_attri1": "spellSpeed",
+				"value": ["Burst", "Focus"],
+				"operator": "in"
+			},
+			{
+				"method": "valCompare",
+				"a": "producer",
+				"a_attri": "inputEntity",
+				"a_attri1": "spellSpeed",
+				"value": ["Slow", "Fast"],
+				"operator": "in"
+			},
+			{
+				"method": "valCompare",
+				"a":  {
+					"modifiers": ["dynamic"],
+			    "entity": "card",
+			    "conditions": {
+			      "owner": "producer.opposite",
+			      "location": "hand",
+						"spellSpeed": ["Burst", "Fast"]
+			    }},
+				"a_attri": "count",
+				"value": 0,
+				"operator": ">"}
 		],
 		"target": [
 			{
@@ -69,7 +440,13 @@
 			      "owner": "producer.player",
 			      "location": "hand"
 			    }},
-			"automatic": "yes"}
+			"automatic": "yes"},
+			{
+				"shorthand": "producer.inputEntity",
+				"automatic": "yes"},
+			{
+				"shorthand": "producer",
+				"automatic": "yes"}
 		],
 		"effect": [
 
@@ -83,7 +460,76 @@
 			{"func": "printStack",
 			"param": {"stack": "options"}
 			},
-			{"func": "getInput"}
+			{"func": "getInput"},
+			{
+			"condition": {"True": 2},
+			"func": "modifyEntity",
+			"param":{
+				"target": [1],
+				"attribute": "location",
+				"method": "set",
+				"value": "graveyard"
+				}
+			},
+			{
+			"condition": {"True": 2},
+			"func": "activateEntity",
+			"param":{
+				"target": [1],
+				"trigger": "activateSpell"
+				}
+			},
+			{
+			"condition": {"True": 1},
+			"func": "activateEntity",
+			"param":{
+				"target": [1],
+				"trigger": "battlecrySummon"
+				}
+			},
+			{
+			"condition": {"True": 3},
+			"func": "modifyEntity",
+			"param":{
+				"target": [1],
+				"attribute": "location",
+				"method": "set",
+				"value": "spellStack"
+				}
+			},
+			{
+				"condition": {"True": 3},
+				"func": "addStack",
+				"param":{
+					"target": [1],
+					"stack": "spellStack"
+					}
+			},
+			{
+				"condition": {"True": 3},
+				"func": "printStack",
+				"param": {"stack": "spellStack"}
+			},
+			{
+				"condition": {"True": [[1, 3]]},
+				"func": "modifyEntity",
+				"param":{
+					"target": [2],
+					"trigger": "changePlayer",
+					"attribute": "player",
+					"method": "cycle",
+					"value": ["oppo", "self"]
+					}
+			},
+			{
+				"condition": {"True": [[1, 3], 4]},
+				"func": "modifyState",
+				"param": {"state": "b"}
+			},
+			{
+				"condition": {"True": [[1, 3]], "False": 4},
+				"func": "testFunc"
+			}
 			]
 		},
 	"battlecrySummon": {
@@ -110,192 +556,70 @@
 					"method": "set",
 					"value": "board"
 					}
-				},
-				{
-				"func": "modifyEntity",
-				"param":{
-					"target": [1],
-					"trigger": "changePlayer",
-					"attribute": "player",
-					"method": "cycle",
-					"value": ["oppo", "self"]
-					}
 				}]
 		},
-	"activate_select": {
-		"condition": [
-			{
-				"trigger": "activate_select",
-				"method": "valCompare",
-				"a": "target",
-				"a_attri": "type",
-				"value": "Unit",
-				"operator": "="
-			},
-			{
-				"method": "valCompare",
-				"a": "target",
-				"a_attri": "type",
-				"value": "Spell",
-				"operator": "="
-			}],
-		"target": [
-			{
-				"shorthand": "target",
-				"automatic": "yes"}],
-		"effect": [
-			{
-			"condition": {"True": 1},
-			"func": "activateEntity",
-			"param":{
-				"target": [0],
-				"trigger": "activateSpell"
-				}
-			},
-			{
-			"condition": {"True": 0},
-			"func": "activateEntity",
-			"param":{
-				"target": [0],
-				"trigger": "battlecrySummon"
-				}
-			}
-		]
-	},
-	"c": {
-			"condition": [{
-				"trigger": "c",
-				"method": "autotrue"
-				}
-			],
-			"target": [
-				{
-				"filter":	{
-				    "entity": "card",
-				    "conditions": {
-				      "owner": "oppo",
-				      "location": "hand",
-							"spellSpeed": ["Burst", "Fast"]
-				    }},
-				"automatic": "yes"}
-			],
-			"effect": [
-
-				{"func": "resetStack",
-				"param": {"stack": "options"}},
-				{"func": "addStack",
-					"param":{
-						"target": [0],
-						"stack": "options"}
-				},
-				{"func": "addStack",
-				"param": [["pass"],
-					{"stack": "options"}]
-				},
-				{"func": "printStack",
-				"param": {"stack": "options"}
-				},
-				{"func": "getInput"}
-				]
-			},
-	"d": {
-			"condition": [{
-				"trigger": "d",
-				"method": "autotrue"
-				}
-			],
-			"target": [
-				{
-				"shorthand": "self board",
-				"automatic": "yes"}
-			],
-			"effect": [
-				{"func": "resetStack",
-				"param": {"stack": "options"}},
-				{"func": "addStack",
-					"param":{
-						"target": [0],
-						"stack": "options"}
-				},
-				{"func": "printStack",
-				"param": {"stack": "options"}
-				},
-				{"func": "getInput"}
-				]
-			},
-	"e": {
-					"condition": [{
-						"trigger": "e",
-						"method": "autotrue"
-						}
-					],
-					"target": [
-						{
-						"shorthand": "self board",
-						"automatic": "yes"}
-					],
-					"effect": [
-
-						{"func": "resetStack",
-						"param": {"stack": "options"}},
-						{"func": "addStack",
-							"param":{
-								"target": [0],
-								"stack": "options"}
-						},
-						{"func": "printStack",
-						"param": {"stack": "options"}
-						},
-						{"func": "getInput"}
-						]
-					},
 	"round_start":{
 		"condition": [{
 			"trigger": "round_start",
 			"method": "autotrue"
 			}
 		],
-		"target": [{
-			"shorthand": "self nexus",
-			"automatic": "yes"},
+		"target": [
 			{
-			"shorthand": "oppo nexus",
-			"automatic": "yes"},
+			"shorthand": "topdeck_oppo"},
 			{
-			"shorthand": "topdeck_oppo",
-			"automatic": "yes"
+			"shorthand": "topdeck"},
+			{
+				"filter":
+					{"modifiers": ["dynamic"],
+					"entity": "nexus",
+					"conditions": {
+						"owner": "producer.roundturn"
+					}
+				}
 			},
 			{
-			"shorthand": "topdeck",
-			"automatic": "yes"
+				"filter":
+					{"modifiers": ["dynamic"],
+					"entity": "nexus",
+					"conditions": {
+						"owner": "producer.opposite"
+					}
+				}
 			}
 		],
 		"effect": [
-
-		{
-			"func": "modifyEntity",
-			"param":{
-				"target": [0],
-				"trigger": "modifyEntity",
-				"attribute": "mana",
-				"method": "add",
-				"value": 1
-				}
+			{
+				"func": "modifyEntity",
+				"param":{
+					"target": [2],
+					"trigger": "modifyEntity",
+					"attribute": "rally",
+					"method": "set",
+					"value": 1}
+			},
+			{
+				"func": "modifyEntity",
+				"param":{
+					"target": [3],
+					"trigger": "modifyEntity",
+					"attribute": "rally",
+					"method": "set",
+					"value": 0}
+			},
+			{
+				"func": "modifyEntity",
+				"param":{
+					"target": [2, 3],
+					"trigger": "modifyEntity",
+					"attribute": "mana",
+					"method": "add",
+					"value": 1}
 			},
 			{
 			"func": "modifyEntity",
 			"param":{
-				"target": [1],
-				"trigger": "modifyEntity",
-				"attribute": "mana",
-				"method": "add",
-				"value": 1
-				}
-			},
-			{
-			"func": "modifyEntity",
-			"param":{
-				"target": [2, 3],
+				"target": [0, 1],
 				"attribute": "location",
 				"method": "set",
 				"value": "hand"
@@ -319,10 +643,6 @@
 			"quantity": 5
 			}],
 		"effect": [
-			{
-			"func": "testFunc"
-			},
-
 			{
 			"func": "createPlayer",
 			"param":{
@@ -365,331 +685,8 @@
 	"alpha":{
 		"effect": [
 			{
-			"func": "testFunc"
-			},
-			{
 			"func": "modifyState",
 			"param":{"state": "init_game"}
-			}
-			]
-	},
-	"a_transition":{
-		"func": "state",
-		"condition": [
-			{
-			"trigger": "a_transition",
-			"method": "autotrue"
-			},
-			{
-			"method": "valCompare",
-			"a": "target",
-			"a_attri": "line",
-			"value": "activate",
-			"operator": "="
-			},
-			{
-			"method": "valCompare",
-			"a": "target",
-			"a_attri": "line",
-			"value": "pass",
-			"operator": "="
-			},
-			{
-			"method": "valCompare",
-			"a": "target",
-			"a_attri": "line",
-			"value": "battle",
-			"operator": "="
-			},
-			{
-			"method": "valCompare",
-			"a": "producer",
-			"a_attri": "prevState",
-			"value": "a",
-			"operator": "="
-			}],
-			"target": [
-				{
-				"shorthand": "producer",
-				"automatic": "yes"}
-			],
-			"effect":[
-
-				{
-				"condition": {"True": 1},
-				"func": "modifyState",
-				"param": {"state": "b"}
-			},
-			{
-			"condition": {"True": 2, "False": 4},
-			"func": "modifyEntity",
-			"param":{
-				"target": [0],
-				"trigger": "changePlayer",
-				"attribute": "player",
-				"method": "cycle",
-				"value": ["oppo", "self"]
-				}
-			},
-			{
-				"condition": {"True": 2, "False": 4},
-				"func": "modifyState",
-				"param": {"state": "a"}
-			},
-			{
-				"condition": {"True": 3},
-				"func": "modifyState",
-				"param": {"state": "d"}
-			},
-			{
-				"condition": {"True": [2, 4]},
-				"func": "modifyState",
-				"param": {"state": "a"}
-			}
-			]
-		},
-	"b_transition":{
-		"func": "state",
-		"condition": [
-			{
-				"method": "valCompare",
-				"a": "target",
-				"a_attri": "spellSpeed",
-				"value": "Burst",
-				"operator": "="
-			},
-			{
-				"method": "valCompare",
-				"a": "target",
-				"a_attri": "spellSpeed",
-				"value": "Slow",
-				"operator": "="
-			},
-			{
-				"trigger": "b_transition",
-				"method": "valCompare",
-				"a": "target",
-				"a_attri": "type",
-				"value": "Unit",
-				"operator": "="
-			},
-			{
-				"method": "valCompare",
-				"a":  {
-					"modifiers": ["dynamic"],
-			    "entity": "card",
-			    "conditions": {
-			      "owner": "producer.player",
-			      "location": "hand",
-						"spellSpeed": ["Burst", "Fast"]
-			    }},
-				"a_attri": "count",
-				"value": 0,
-				"operator": ">"},
-			{
-				"method": "valCompare",
-				"a": "target",
-				"a_attri": "spellSpeed",
-				"value": "Fast",
-				"operator": "="
-			}
-		],
-		"target": [
-			{
-			"shorthand": "target",
-			"automatic": "yes"},
-			{
-			"shorthand": "producer",
-			"automatic": "yes"}
-		],
-		"effect": [
-
-			{
-			"condition": {"True": 0},
-			"func": "activateEntity",
-			"param":{
-				"target": [0],
-				"trigger": "activateSpell"
-				}
-			},
-			{
-			"condition": {"True": 2},
-			"func": "activateEntity",
-			"param":{
-				"target": [0],
-				"trigger": "battlecrySummon"
-				}
-			},
-			{
-			"condition": {"True": [1, 4]},
-			"func": "addStack",
-			"param":{
-				"target": [0],
-				"trigger": "addStack",
-				"stack": "spellStack"
-				}
-			},
-			{
-			"condition": {"True": [[1, 2, 4]]},
-			"func": "modifyEntity",
-			"param":{
-				"target": [1],
-				"trigger": "changePlayer",
-				"attribute": "player",
-				"method": "cycle",
-				"value": ["oppo", "self"]
-				}
-			},
-			{
-			"condition": {"True": 0},
-			"func": "modifyState",
-			"param":{"state": "a"}
-			},
-			{
-			"condition": {"True": [[1, 2, 4], 3]},
-			"func": "modifyState",
-			"param":{"state": "c"}
-			},
-			{
-			"condition": {"False": 3, "True": [[1, 2, 4]]},
-			"func": "modifyState",
-			"param":{"state": "a"}
-			},
-			{
-			"condition": {"False": 3, "True": [[1, 2, 4]]},
-			"func": "resolve_spell_q"
-			},
-			{"func": "getInput"}
-			]
-	},
-	"c_transition":{
-		"func": "state",
-		"condition": [
-			{
-			"trigger": "c_transition",
-			"method": "valCompare",
-			"a": "target",
-			"a_attri": "spellSpeed",
-			"value": "Burst",
-			"operator": "="
-			},
-			{"method": "valCompare",
-			"a": "target",
-			"a_attri": "spellSpeed",
-			"value": "Fast",
-			"operator": "="},
-			{
-			"method": "valCompare",
-			"a": "target",
-			"a_attri": "line",
-			"value": "pass",
-			"operator": "="
-		}
-		],
-		"target": [
-			{
-			"shorthand": "target",
-			"automatic": "yes"},
-			{
-			"shorthand": "producer",
-			"automatic": "yes"}
-		],
-		"effect": [
-
-			{
-			"condition": {"True": 0},
-			"func": "activateEntity",
-			"param":{
-				"target": [0],
-				"trigger": "activateSpell"
-				}
-			},
-			{
-			"condition": {"True": 2},
-			"func": "resolve_spell_q"
-			},
-			{
-			"condition": {"True": 2},
-			"func": "modifyState",
-			"param":{"state": "a"}
-		},
-			{
-			"condition": {"True": 1},
-			"func": "addStack",
-			"param":{
-				"target": [0],
-				"trigger": "addStack",
-				"stack": "spellStack"
-				}
-			},
-			{
-			"condition": {"True": [[0, 1]]},
-			"func": "modifyEntity",
-			"param":{
-				"target": [0],
-				"attribute": "location",
-				"method": "set",
-				"value": "graveyard"
-				}
-			},
-			{
-			"condition": {"True": [1]},
-			"func": "modifyEntity",
-			"param":{
-				"target": [1],
-				"trigger": "changePlayer",
-				"attribute": "player",
-				"method": "cycle",
-				"value": ["oppo", "self"]
-				}
-			},
-			{
-			"condition": {"True": [[0, 1]]},
-			"func": "modifyState",
-			"param":{"state": "c"}
-		}
-			]
-	},
-	"d_transition":{
-		"func": "state",
-		"condition": [{
-			"trigger": "d_transition",
-			"method": "autotrue"
-			}
-		],
-		"target": [
-			{
-			"shorthand": "target",
-			"automatic": "yes"}
-		],
-		"effect": [
-
-			{
-			"func": "modifyEntity",
-			"param":{
-				"target": [0],
-				"attribute": "location",
-				"method": "set",
-				"value": "battlers"
-				}
-			},
-			{
-			"func": "modifyState",
-			"param":{"state": "e"}
-			}
-			]
-	},
-	"getInputxx":{
-		"func": "state",
-		"condition": [{
-			"trigger": "getInputx",
-			"method": "autotrue"
-			}
-		],
-		"effect": [
-			{
-			"func": "modifyState",
-			"param":{"state": "transition"}
 			}
 			]
 	}

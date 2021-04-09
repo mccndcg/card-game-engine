@@ -1,19 +1,61 @@
-from collections import deque
 from data import db, alias, init_state
 from helpers import textColor, deepcopy
+
+
+def modifier(self, variable, value, operator):
+    try:
+        var = getattr(self, variable)
+    # 'attribute not initialized'
+    except AttributeError:
+        setattr(self, variable, 0)
+        var = 0
+    # set old value
+    setattr(self, 'old_' + variable, var)
+    # default operator is set
+    if operator == 'set':
+        setattr(self, variable, value)
+    # [1, 2, 3]
+    # 1 > 2, 2 > 3, 3 > 1
+    if operator == 'cycle':
+        if value.index(var) != len(value) - 1:
+            setattr(self, variable, value[value.index(var) + 1])
+        else:
+            setattr(self, variable, value[0])
+    elif operator == 'clamp':
+        max_var = getattr(self, 'max' + variable)
+        if max_var >= var + value:
+            setattr(self, variable, var + value)
+        else:
+            setattr(self, variable, max_var)
+    elif operator == 'add':
+        setattr(self, variable, var + value)
+    elif operator == 'subtract':
+        setattr(self, variable, var - value)
+    print(textColor('grey', variable),
+          textColor('grey', var), textColor('yellow', getattr(self, variable)))
+    # return value for modifyValue to pass to feedbackGuy
 
 
 class Cue(object):
 
     def __init__(self, line):
         self.command = line
+        self.prevCommand = ''
         self.name = 'morricone'
+        self.history = []
+
+    def update(self, inp):
+        self. prevCommand, self.command = self.command, inp
+        self.history.insert(0, inp)
+
+    def modifyValue(self, variable, value, operator):
+        modifier(self, variable, value, operator)
 
     def __repr__(self):
-        return f'({self.command})'
+        return f'(Current command is {self.command})'
 
     def __str__(self):
-        return f'({self.command})'
+        return f'(Current command is  {self.command})'
 
 class stateObject(object):
 
@@ -30,6 +72,9 @@ class producer(object):
         self.prevState = None
         self.name = 'akira'
         self.player = 'self'
+        self.opposite = 'oppo'
+        self.roundturn = 'self'
+        self.naturalturn = 'self'
         self.target = None
         self.targetList = None
         for state, effect in init_state().items():
@@ -40,6 +85,9 @@ class producer(object):
             except KeyError: # no condition
                 pass
 
+    def modifyValue(self, variable, value, operator):
+        modifier(self, variable, value, operator)
+
     def changeState(self, state):
         # self.prevState = deepcopy(self.state)
         self.prevState = self.state
@@ -49,16 +97,6 @@ class producer(object):
     def activateCall(self, function):
         state_entity = getattr(self, self.state)
         function(state_entity, self.state)
-
-    def modifyValue(self, variable, value, operator):
-        var = getattr(self, variable)
-        if operator == 'cycle':
-            if value.index(var) != len(value) - 1:
-                setattr(self, variable, value[value.index(var) + 1])
-            else:
-                setattr(self, variable, value[0])
-        print(textColor('grey', var), textColor(
-            'yellow', getattr(self, variable)))
 
     def __str__(self):
         return f'prod - {textColor("purple", self.name.upper())}'
@@ -90,10 +128,10 @@ class card(object):
         self.target = []
 
     def __repr__(self):
-        return f'({self.name} {self.location} {self.index} {self.owner})'
+        return f'({self.name} {self.location} {self.index} {self.owner} {self.type})'
 
     def __str__(self):
-        return f'({self.name} {self.location} {self.index} {self.owner})'
+        return f'({self.name} {self.location} {self.index} {self.owner} {self.type})'
 
     def activateCall(self, triggerStr, function):
         try:
@@ -108,37 +146,7 @@ class card(object):
         self.index = director.moveActor(destination, origin, self)
 
     def modifyValue(self, variable, value, operator):
-        try:
-            var = getattr(self, variable)
-        # 'attribute not initialized'
-        except AttributeError:
-            setattr(self, variable, 0)
-            var = 0
-        # set old value
-        setattr(self, 'old_' + variable, var)
-        # default operator is set
-        if operator == 'set':
-            setattr(self, variable, value)
-        # [1, 2, 3]
-        # 1 > 2, 2 > 3, 3 > 1
-        if operator == 'cycle':
-            if value.index(getattr(self, variable)) != len(value) - 1:
-                setattr(self, variable, value[value.index(variable) + 1])
-            else:
-                setattr(self, variable, value[0])
-        elif operator == 'clamp':
-            max_var = getattr(self, 'max' + variable)
-            if max_var >= var + value:
-                setattr(self, variable, var + value)
-            else:
-                setattr(self, variable, max_var)
-        elif operator == 'add':
-            setattr(self, variable, var + value)
-        elif operator == 'subtract':
-            setattr(self, variable, var - value)
-        print(textColor('grey', variable),
-              textColor('grey', var), textColor('yellow', getattr(self, variable)))
-        # return value for modifyValue to pass to feedbackGuy
+        modifier(self, variable, value, operator)
 
 
 class nexus(object):
@@ -160,21 +168,7 @@ class nexus(object):
         self.region2 = 'Demacia'
 
     def modifyValue(self, variable, value, operator):
-        var = getattr(self, variable)
-        if operator == 'set':
-            setattr(self, variable, value)
-        elif operator == 'clamp':
-            max_var = getattr(self, 'max' + variable)
-            if max_var >= var + value:
-                setattr(self, variable, var + value)
-            else:
-                setattr(self, variable, max_var)
-        elif operator == 'add':
-            setattr(self, variable, var + value)
-        elif operator == 'subtract':
-            setattr(self, variable, var - value)
-        print(textColor('grey', variable),
-              textColor('grey', var), textColor('yellow', getattr(self, variable)))
+        modifier(self, variable, value, operator)
 
 
 class spielberg(object):
@@ -183,9 +177,6 @@ class spielberg(object):
     def __init__(self):
         print('_init_ created object director')
         self.cue = Cue('')
-        self.nexusStack = deque([])
-        self.actorStack = deque([])
-        self.locationStack = deque([])
         self.roster = {'actors': {}, 'nexus': {}}
         self.triggerDirectory = {}
         self.overrideDirectory = {}
@@ -195,15 +186,12 @@ class spielberg(object):
         self.deck2 = 'CEBQUAQGAQEAWFA2DQQCMLJ2AIBAGAYIAEAQGAQAAEAQCAZT'
         self.deck1 = 'CECAOAIEAEEBSHBUGY5ACAIBCYBQEAICAYFACAQEBIAQCAYECIBACAQEAMAQEAII'
 
+    def modifyValue(self, variable, value, operator):
+        modifier(self, variable, value, operator)
+
     def printStack(self, stack):
         for item in getattr(self, stack):
             print(item)
-
-    def modifyValue(self, variable, value, operator):
-        if operator == 'set':
-            setattr(self, variable, value)
-        else:
-            setattr(self, variable, getattr(self, variable) + 1)
 
     def moveActor(self, destination, origin, entity):
         '''

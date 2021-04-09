@@ -1,6 +1,5 @@
 {
   "01PZ010": {
-
     "variable": [{
       "name": "heimerlvl",
       "entity": "unit",
@@ -32,5 +31,12 @@
           "value": 1,
           "method": "add"}
         }]
-    }
+    },
+  "02PZ003": {
+    "effect": [
+      {
+        "func": "testFunc"
+      }
+    ]
+  }
 }

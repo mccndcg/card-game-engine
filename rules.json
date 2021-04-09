@@ -10,5 +10,39 @@
 				"b_attri": "mana",
 				"operator": "<="}
 			]
+	},
+	"set opposite": {
+		"condition": [
+			{
+				"trigger": "set opposite",
+				"method": "autotrue"}
+			],
+		"target": [
+			{
+				"shorthand": "producer"
+			}
+		],
+		"effect": [
+			{
+			"func": "modifyEntity",
+			"param":{
+				"modifiers": ["dynamic"],
+				"target": [0],
+				"attribute": "opposite",
+				"method": "set",
+				"value": "producer.player"
+				}
+			},
+			{
+			"func": "modifyEntity",
+			"param":{
+				"modifiers": ["dynamic"],
+				"target": [0],
+				"attribute": "opposite",
+				"method": "cycle",
+				"value": ["self", "oppo"]
+				}
+			}
+		]
 	}
 }

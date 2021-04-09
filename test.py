@@ -1,3 +1,4 @@
-x = {'a': 5, 'b': 2}
-for index, (a, b) in enumerate(x.items()):
-    print(index, a, b)
+y = 3
+x = 1
+x , y = y, x
+print(x, y)

@@ -1,15 +1,10 @@
-from config import Cue, spielberg, deque, db
+from config import Cue, spielberg, db
 from lor_deckcodes import LoRDeck
 from data import json
 import helpers
 
-
 toggle = True
-#toggle = False
-
-# def overrideGuy(entity, triggerStr):
-#     pass
-#
+toggle = False
 
 
 def activateEntity(entity, b):
@@ -21,6 +16,7 @@ def activateEntity(entity, b):
             actuator()
     def actuator():
         if not negateGuy(entity, b['trigger']):
+            print(helpers.textColor('green', ('Activating '+ str(entity))))
             activateCall(entity, b['trigger'])
             feedbackGuy(entity, b['trigger'])
     contextMan()
@@ -69,6 +65,7 @@ def feedbackGuy(entity, triggerStr):
         target for listener.
     '''
     def contextMan():
+        # to force feedback
         if type(triggerStr) is list:
             for subtrigger in triggerStr:
                 feedbackGuy(entity, subtrigger)
@@ -87,6 +84,8 @@ def feedbackGuy(entity, triggerStr):
             pass
     if toggle:
         print('_enter feedback', entity, triggerStr)
+    if type(triggerStr) == dict:
+        triggerStr = triggerStr['trigger']
     contextMan()
 
 def getInput():
@@ -110,14 +109,20 @@ def getInput():
             print(director.producer.state)
         elif inputString == 'player':
             print(director.producer.player)
+        elif inputString == 'break':
+            print(breakhere)
         else:
             print(helpers.textColor('red', 'ERR 01: Command not available. Choose from stack.'))
-        feedbackGuy(None, 'test')
         getInput()
     inp = input()
     if inp.isnumeric():
         if len(inp) == 1:
-            feedbackGuy(director.options[int(inp)], director.cue.command + '_select')
+            director.producer.inputIndex = inp
+            try:
+                director.producer.inputEntity = director.options[int(inp)]
+            except IndexError:
+                print(helpers.textColor('red', 'ERR 02: Selection not in stack.'))
+                getInput()
         elif len(inp) > 1:
             feedbackGuy([director.options[int(x)] for x in inp], 'getInput')
     # if inp.isnumeric():
@@ -128,7 +133,7 @@ def getInput():
     #         getInput()
     else:
         if inp in director.options:
-            director.cue.command = inp
+            director.cue.update(inp)
             print(helpers.textColor('green', 'Command accepted.'))
             feedbackGuy(director.cue, inp)
         else:
@@ -146,28 +151,7 @@ def init_game():
 
 def game(kurosawa):
     kurosawa.activateCall(activateCall)
-    if kurosawa.state == 'game_end' or kurosawa.state == 'round_end':
-        return
-    else:
-        game(kurosawa)
-
-def addStack(entity, script):
-    # access stack, initialize if needed
-    try:
-        getattr(director, script['stack'])
-    except AttributeError:
-        setattr(director, script['stack'], deque([]))
-    if type(entity) == list:
-        # append list
-        setattr(director, script['stack'], getattr(
-            director, script['stack']) + deque(entity))
-    else:
-        getattr(director, script['stack']).append(entity)
-    getattr(director, script['stack']).reverse()
-
-
-def resetStack(script):
-    setattr(director, script['stack'], deque([]))
+    game(kurosawa)
 
 
 def modifyState(script):
@@ -183,8 +167,10 @@ def modifyState(script):
 
 
 def testFunc():
-    print('FUCK')
+    print('HI')
 
+def exitFunc():
+    exit()
 
 def createEntity(script):
     '''
@@ -271,7 +257,9 @@ def modifyEntity(entity, script):
 def changePlayer():
     if director.producer.player == 'self':
         director.producer.player = 'oppo'
+        director.producer.opposite = 'self'
     else:
+        director.producer.opposite = 'oppo'
         director.producer.player = 'self'
 
 #
@@ -308,32 +296,35 @@ def activateCall(entity, trigger):
         for effectIndex in effect['effect']:
             actuator(effectIndex)
     def actuator(effectIndex):
-        def inner_check(condition, digitalBoolean):
+        def inner_check(conIndex, digitalBoolean):
             '''
             Returns true if bool and condition mismatch.
             '''
-            if type(condition) == int and (digitalBoolean != conditions(index)):
+            if digitalBoolean != conditions(conIndex):
                 return True
             return False
-        def inner_check_list(subCondition, digitalBoolean):
-            for subSubCondition in subCondition:
-                if inner_check(condition, digitalBoolean):
+        def inner_check_list(subconIndex, digitalBoolean):
+            # [0, 1]
+            for subsubconIndex in subconIndex:
+                if not inner_check(subsubconIndex, digitalBoolean):
                     return True
             return False
+        flag = True
         try:
-            flag = True
-            for index, (boolean, condition) in enumerate(effectIndex['condition'].items()):
+            for boolean, condition in effectIndex['condition'].items():
                 digitalBoolean = helpers.bool(boolean)
-                if inner_check(condition, digitalBoolean):
+                # True: 0
+                if type(condition) == int and (inner_check(condition, digitalBoolean)):
                     flag = False
                     break
                 elif type(condition) == list:
                     for subCondition in condition:
                         # False: [0, 1]
-                        if inner_check(subCondition, digitalBoolean):
+                        if type(condition) == int and inner_check(subCondition, digitalBoolean):
                             flag = False
                             break
-                        elif type(subCondition) == list and inner_check_list(subCondition, digitalBoolean):
+                        # False: [[0, 1], 2]
+                        elif type(subCondition) == list and not inner_check_list(subCondition, digitalBoolean):
                             flag = False
                 if not flag:
                     break
@@ -346,7 +337,7 @@ def activateCall(entity, trigger):
                     'purple', effectIndex['condition']), helpers.textColor('red', effectIndex))
         # effect has no condition
         except KeyError:
-            print('   no condition', helpers.textColor('green', effectIndex),)
+            print('   no condition', helpers.textColor('green', effectIndex))
             activate(entity, effectIndex, effect)
     effectCycler()
     if toggle:
@@ -358,21 +349,19 @@ def activate(entity, effectIndex, effect):
     Actuator function to call effect functions.
     '''
     if toggle:
-        print('__activate effect')
+        print('__activate')
     function = effectIndex['func']
+    # hardcoded
+    if function == 'feedbackGuy':
+        globals()[function](None, effectIndex['param']['trigger'])
     try:
         param = effectIndex['param']
         param.update({"origin": entity})
-        if 'target' in effect:
-            # update store level target
-            entity.targetStack = helpers.acquire_target(
-                entity, effect['target'], director)
-            # parse values, copy the updated dynamic object
-            try:
-                if 'dynamic' in param['modifiers']:
-                    param = helpers.parse(param, entity.targetStack, entity, director)
-            except KeyError:
-                pass
+        try:
+            if 'dynamic' in param['modifiers']:
+                param = helpers.parse(param, [], entity, director)
+        except KeyError:
+            pass
         # subeffect level target
         if 'target' in param:
             for j in param['target']:
@@ -381,7 +370,11 @@ def activate(entity, effectIndex, effect):
                     globals()[function](j, param)
                 #target[0,1,2]
                 elif type(j) is int:
-                    globals()[function](entity.targetStack[j], param)
+                    target = helpers.acquire_target(entity, effect['target'][j], director)
+                    if target is None:
+                        return
+                    else:
+                        globals()[function](target, param)
         else:
             globals()[function](param)
     except KeyError:
@@ -426,9 +419,26 @@ def printer(lines):
     print(lines)
 
 
+def addStack(entity, script):
+    # access stack, initialize if needed
+    try:
+        stackEntity = getattr(director, script['stack'])
+    except AttributeError:
+        setattr(director, script['stack'], [])
+        stackEntity = getattr(director, script['stack'])
+    if type(entity) == list:
+        stackEntity.extend(entity)
+    else:
+        stackEntity.append(entity)
+    stackEntity.reverse()
+
+
+def resetStack(script):
+    setattr(director, script['stack'], [])
+
+
 def printStack(script):
     print(helpers.textColor('yellow', '-------STACK------'))
-    #[print(str(x)) for x in getattr(director, script['stack'])]
     for x in getattr(director, script['stack']):
         print(x)
     print(helpers.textColor('yellow', '------------------'))

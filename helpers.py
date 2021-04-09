@@ -53,6 +53,8 @@ def valueCheck(entity, reqt, director, idx):
             a = entity.target
         elif entityA == 'producer':
             a = director.producer
+        elif entityA == 'cue':
+            a = director.cue
         elif type(entityA) is dict:
             a = preFilter(entityA, entity, director)
         elif a[:6] == 'target':
@@ -68,6 +70,11 @@ def valueCheck(entity, reqt, director, idx):
                     a = getattr(a, 'old_' + reqt['a_attri'])
                 elif method == 'valCompare':
                     a = getattr(a, reqt['a_attri'])
+                    for x in range(1, 9):
+                        if 'a_attri'+str(x) in reqt:
+                            a = getattr(a, reqt['a_attri' + str(x)])
+                        else:
+                            break
             # ex 1
             except AttributeError:
                 print(textColor('purple', idx), textColor('red', 'conditions fail'), 'no attribute', reqt['a_attri'])
@@ -146,44 +153,42 @@ def Filter(x, filterDict):
     return(returnList)
 
 
-def acquire_target(entity, targetList, director):
+def acquire_target(entity, targetEntity, director):
     if toggle:
         print('_enter acquire_target')
-    target = []
-    for index in targetList:
-        if type(index) is list:
-            index = choice(index)
-        try:
-            if index['shorthand'] == 'target':
-                # target.append([entity.target])
-                # continue
-                if type(entity.target) == list:
-                    target = target + [entity.target]
-                else:
-                    target.append([entity.target])
-                continue
-            elif index['shorthand'] == "this":
-                target.append([entity])
-                continue
-            elif index['shorthand'] == "producer":
-                target.append([director.producer])
-                continue
-            filter = deepcopy(getAlias(index['shorthand']))
-        # no shorthand
-        except KeyError:
-            filter = index['filter']
-        try:
-            filter['get']['count'] = index['quantity']
-        # resort to default quantity
-        except KeyError:
-            pass
-        if index['automatic'] == 'yes':
-            target.append(preFilter(filter, entity, director))
-        if index['automatic'] == 'no':
-            target.append([choice(preFilter(filter, entity, director))])
+    if type(targetEntity) is list:
+        targetEntity = choice(targetEntity)
+    try:
+        if targetEntity['shorthand'] == 'target':
+            return(entity.target)
+        elif targetEntity['shorthand'] == "this":
+            return(entity)
+        elif targetEntity['shorthand'] == "producer":
+            return(director.producer)
+        elif targetEntity['shorthand'] == "producer.inputEntity":
+            return(director.producer.inputEntity)
+        elif targetEntity['shorthand'] == "stack":
+            return(getattr(director, targetEntity['stack']))
+        elif targetEntity['shorthand'] == "cue":
+            return(director.cue)
+        filter = deepcopy(getAlias(targetEntity['shorthand']))
+    # no shorthand
+    except KeyError:
+        filter = targetEntity['filter']
+    except AttributeError:
+        return None
+    try:
+        filter['get']['count'] = targetEntity['quantity']
+    # resort to default quantity
+    except KeyError:
+        pass
+    return(preFilter(filter, entity, director))
+    # if targetEntity['automatic'] == 'yes':
+    #     return(preFilter(filter, entity, director))
+    # if targetEntity['automatic'] == 'no':
+    #     return(choice(preFilter(filter, entity, director)))
     if toggle:
         print('_exit acquire_target')
-    return target
 
 
 def a_t_helper(entity, target):
