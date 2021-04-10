@@ -8,7 +8,7 @@
 				"a_attri": "cost",
 				"b": "self nexus",
 				"b_attri": "mana",
-				"operator": "<="}
+				"operator": ">"}
 			]
 	},
 	"set opposite": {
@@ -55,12 +55,39 @@
 		"target": [
 			{
 				"shorthand": "target"
+			},
+			{
+				"shorthand": "target",
+				"attribute": "defender"
 			}],
 		"effect": [
+			{
+				"func": "modifyEntity",
+				"param":{
+					"target": [0],
+					"attribute": "striketarget",
+					"method": "set",
+					"value_pointer": 1}
+			},
+			{
+				"func": "modifyEntity",
+				"param":{
+					"target": [1],
+					"attribute": "striketarget",
+					"method": "set",
+					"value_pointer": 0}
+			},
 			{
 				"func": "callFeedbackGuy",
 				"param":{
 					"target": [0],
+					"trigger": "strike"
+					}
+			},
+			{
+				"func": "callFeedbackGuy",
+				"param":{
+					"target": [1],
 					"trigger": "strike"
 					}
 			}
@@ -76,7 +103,8 @@
 		],
 		"target": [
 			{
-				"shorthand": "target"
+				"shorthand": "target",
+				"attribute": "striketarget"
 			}],
 		"effect": [
 			{
@@ -86,8 +114,40 @@
 				"target": [0],
 				"attribute": "health",
 				"method": "set",
-				"value": "0.defender.attack"
-			}}
+				"value": "0.attack"}
+			}
+		]
+	},
+	"death": {
+		"condition": [
+			{
+				"trigger": "modifyEntity",
+				"method": "valCompare",
+				"a": "target",
+				"a_attri": "feedbackValue",
+				"value": "graveyard",
+				"operator": "="}
+		],
+		"target": [
+			{
+				"shorthand": "target"
+			}],
+		"effect": [
+			{
+				"condition": {"True": 0},
+				"func": "exitFunc"
+			}
+		]
+	},
+	"forbid entity attack": {
+		"condition": [
+			{
+				"negate": "modifyEntity",
+				"method": "valCompare",
+				"a": "target",
+				"a_attri": "keywords",
+				"value": "Immobile",
+				"operator": "in"}
 		]
 	}
 }

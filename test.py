@@ -1,3 +1,2 @@
-
-
-lambda x: for y in x: a
+x = {'a': 'test'}
+print(getattr(x, 'a'))

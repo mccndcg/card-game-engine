@@ -6,7 +6,7 @@ import helpers
 toggle = True
 toggle = False
 command = []
-#command = ['battle', 'attack', '0', 'commit', 'defend', '0', '0', 'commit']
+command = ['battle', 'attack', '0', 'commit', 'defend', '0', '0', 'commit']
 
 def activateEntity(entity, b):
     def contextMan():
@@ -54,7 +54,8 @@ def negateCall(listener, trigger, entity):
         return False
     for idx, condition in enumerate(listener.effect['condition']):
         if 'negate' in condition.keys() and (trigger == condition['negate']) and same_guy(condition):
-            if helpers.valueCheck(listener, condition, director, idx) == False:
+        #if 'negate' in condition.keys() and (trigger == condition['negate']) and same_guy(condition):
+            if helpers.valueCheck(listener, condition, director, idx) == True:
                 return(True)
     return(False)
 
@@ -79,8 +80,7 @@ def feedbackGuy(entity, triggerStr):
         # if event has no listing in triggerDirectory
         except KeyError:
             pass
-    if toggle:
-        print('_enter feedback', entity, triggerStr)
+    printer('_enter feedback', entity, triggerStr)
     contextMan()
 
 def callFeedbackGuy(entity, script):
@@ -227,7 +227,9 @@ def copyEntity(entityList, script):
 
 def modifyEntity(entity, script):
     '''
-    Modify entity attributes. Script needs {attribute, value, method}
+    Modify entity attributes. Script needs {attribute, value, method}.
+    Builds a list of trigger, script can have ONE or LIST of triggers.
+    Iterates triggerlist, then calls feedbackGuy.
     '''
     def contextMan(entity):
         if type(entity) is list:
@@ -236,24 +238,32 @@ def modifyEntity(entity, script):
         elif type(script['attribute']) is str:
             actuator(entity, script['attribute'], script['value'])
         else:
+            # can modify entity's multiple attribs, at the same call
+            # ex: attrib: ['health', 'attack'], value [3, 4]
             for index, subAttribute in script['attribute']:
                 actuator(entity, subAttribute, script['value'][index])
     def actuator(entity, attribute, value):
         '''
         Performs the actual call-out procedure.
         '''
+        entity.feedbackValue = value
+        entity.feedbackAttribute = attribute
         trigger = ['modifyEntity']
+        try:
+            if type(script['trigger']) is list:
+                trigger.extend(script['trigger'])
+            else:
+                trigger.append(script['trigger'])
+        except:
+            pass
+        for subTrigger in trigger:
+            if negateGuy(entity, subTrigger):
+                print(helpers.textColor('red', f"NEGATED"), helpers.textColor
+                ('purple', f"{attribute} {value}"))
+                return
         if attribute == 'location':
             trigger.append('changeLocation')
             entity.changeLocation(value, director)
-        else:
-            try:
-                if type(script['trigger']) is list:
-                    trigger.extend(script['trigger'])
-                else:
-                    trigger.append(script['trigger'])
-            except:
-                pass
         entity.modifyValue(attribute, value, script['method'])
         for subTrigger in trigger:
             #if negateGuy(entity, triggerStr) is False:
@@ -284,7 +294,7 @@ def activateCall(entity, trigger):
     4. Effect can also be conditionless (autotrue).
     5. If conditions are met, call activate.
     '''
-    print('>', entity.name, '>>', trigger)
+    printer('>', entity.name, '>>', trigger)
     conditionmap = []
     try:
         effect = entity.effect
@@ -336,19 +346,18 @@ def activateCall(entity, trigger):
                 if not flag:
                     break
             if flag:
-                print('   ', helpers.textColor(
+                printer('   ', helpers.textColor(
                     'purple', effectIndex['condition']), helpers.textColor('green', effectIndex))
                 activate(entity, effectIndex, effect)
             else:
-                print('   ',helpers.textColor(
+                printer('   ',helpers.textColor(
                     'purple', effectIndex['condition']), helpers.textColor('red', effectIndex))
         # effect has no condition
         except KeyError:
-            print('   no condition', helpers.textColor('green', effectIndex))
+            printer('   no condition', helpers.textColor('green', effectIndex))
             activate(entity, effectIndex, effect)
     effectCycler()
-    if toggle:
-        print('____ exit activate call')
+    printer('____ exit activate call')
 
 
 def activate(entity, effectIndex, effect):
@@ -356,8 +365,10 @@ def activate(entity, effectIndex, effect):
     '''
     Actuator function to call effect functions.
     '''
-    if toggle:
-        print('__activate')
+    def caller(function, **kwargs):
+        #if not negateGuy(entity, trigger)
+        globals()[function](**kwargs)
+    printer('__activate')
     function = effectIndex['func']
     if 'target' in effect:
         target = [helpers.acquire_target(entity, x, director) for x in effect['target']]
@@ -372,23 +383,20 @@ def activate(entity, effectIndex, effect):
         # subeffect level target
         if 'target' in param:
             for j in param['target']:
-                #target['pass']
                 if 'value_pointer' in param:
                     param['value'] = target[param['value_pointer']]
+                # target['pass']
                 if type(j) is str:
-                    globals()[function](j, param)
-                #target[0,1,2]
+                    caller(function, entity=j, script=param)
+                # target[0,1,2]
                 elif type(j) is int:
-                    if target is None:
-                        return
-                    else:
-                        globals()[function](target[j], param)
+                    if target[j] is not None:
+                        caller(function, entity=target[j], script=param)
         else:
-            globals()[function](param)
+            caller(function, script=param)
     except KeyError:
-        globals()[function]()
-    if toggle:
-        print('____exit activate effect')
+        caller(function)
+    printer('____exit activate effect')
 
 
 def createPlayer(script):
@@ -423,8 +431,9 @@ def createDeck(script):
     contextMan()
 
 
-def printer(lines):
-    print(lines)
+def printer(*args):
+    if toggle:
+        print(args)
 
 def createDummy():
     createEntity({'cardCode': 'DUMMYTARGET', 'location': 'board', 'owner': 'self'})

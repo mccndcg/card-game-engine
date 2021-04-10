@@ -7,6 +7,9 @@ from copy import deepcopy
 toggle = True
 toggle = False
 
+def printer(*args):
+    if toggle:
+        print(args)
 
 def string2entity(entity, alias, director):
     if alias == 'this':
@@ -43,13 +46,17 @@ def valueCheck(entity, reqt, director, idx):
     def actuator(a, c):
         if a is False:
             return False
-        if reqt['operator'] == 'in':
+        if reqt['operator'] == 'in' and (type(c) is list):
             a, c = c, a
-        if ops[reqt['operator']](a, c):
-            # print(textColor('purple', idx), textColor('green', 'conditions pass'), a, c, reqt['a_attri'])
-            return True
-        else:
-            # print(textColor('purple', idx), textColor('red', 'conditions fail'), a, c, reqt['a_attri'])
+        try:
+            if ops[reqt['operator']](a, c):
+                # print(textColor('purple', idx), textColor('green', 'conditions pass'), a, c, reqt['a_attri'])
+                return True
+            else:
+                # print(textColor('purple', idx), textColor('red', 'conditions fail'), a, c, reqt['a_attri'])
+                return False
+        except TypeError:
+            # ex: compare 1(int) and graveyard(str)
             return False
     def contextMan(method):
         if method == 'valCompare':
@@ -73,6 +80,11 @@ def valueCheck(entity, reqt, director, idx):
             return(entity.targetStack[int(targ.strip('target#'))])
         return a
     def getA(method):
+        def subparser(attributeString, target):
+            getter = lambda a, b: getattr(a, b)
+            attribs = attributeString.split('.')
+            attribs.insert(0, target)
+            return reduce(getter, attribs)
         a = getA_entity()
         if reqt['a_attri'] == 'count':
             a = len(a)
@@ -87,15 +99,10 @@ def valueCheck(entity, reqt, director, idx):
                 if method == 'valDelta_old':
                     a = getattr(a, 'old_' + reqt['a_attri'])
                 elif method == 'valCompare':
-                    a = getattr(a, reqt['a_attri'])
-                    for x in range(1, 9):
-                        if 'a_attri'+str(x) in reqt:
-                            a = getattr(a, reqt['a_attri' + str(x)])
-                        else:
-                            break
+                    a = subparser(reqt['a_attri'], a)
             # ex 1
             except AttributeError:
-                print(textColor('purple', idx), textColor('red', 'conditions fail'), 'no attribute', reqt['a_attri'])
+                printer(textColor('purple', idx), textColor('red', 'conditions fail'), 'no attribute', reqt['a_attri'])
                 return False
         return a
     def getC(method):
@@ -171,15 +178,16 @@ def Filter(x, filterDict):
 
 
 def acquire_target(entity, targetEntity, director):
-    if toggle:
-        print(f"_enter acquire_target {targetEntity}")
+    printer(f"_enter acquire_target {targetEntity}")
     if type(targetEntity) is list:
         targetEntity = choice(targetEntity)
     try:
         a = string2entity(entity, targetEntity['shorthand'], director)
         if a is not False:
-            return a
-        print(targetEntity)
+            if 'attribute' in targetEntity:
+                return getattr(a, targetEntity['attribute'])
+            else:
+                return a
         filter = deepcopy(getAlias(targetEntity['shorthand']))
     # no shorthand
     except KeyError:
@@ -192,8 +200,7 @@ def acquire_target(entity, targetEntity, director):
     except KeyError:
         pass
     return(preFilter(filter, entity, director))
-    if toggle:
-        print('_exit acquire_target')
+    printer('_exit acquire_target')
 
 
 def a_t_helper(entity, target):
@@ -235,8 +242,7 @@ def parse(param, target, entity, director):
         elif type(entity) is str and ('.' in entity):
             parent[index] = subparser(entity)
     # persist static text pointer, return the dynamic one to use
-    if toggle:
-        print('_enter parse')
+    printer('_enter parse')
     cloneParam = deepcopy(param)
     walker(cloneParam, 0, cloneParam)
     return cloneParam

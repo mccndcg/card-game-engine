@@ -10,6 +10,9 @@
 							"location": "battlers",
 							"type": "Unit"
 						}}
+				},
+				{
+					"shorthand": "producer"
 				}],
 		"effect": [
 			{
@@ -20,7 +23,27 @@
 					}
 			},
 			{
-				"func": "exitFunc"
+			"func": "modifyEntity",
+			"param":{
+				"target": [1],
+				"attribute": "naturalturn",
+				"method": "cycle",
+				"value": ["oppo", "self"]}
+			},
+			{
+			"func": "modifyEntity",
+			"param":{
+				"trigger": "set opposite",
+				"modifiers": ["dynamic"],
+				"target": [1],
+				"attribute": "player",
+				"method": "set",
+				"value": "producer.naturalturn"
+				}
+			},
+			{
+				"func": "modifyState",
+				"param": {"state": "a"}
 			}
 		]
 	},
@@ -229,6 +252,7 @@
 			{
 			"func": "modifyEntity",
 			"param":{
+				"trigger": "set to battle",
 				"target": [1],
 				"attribute": "location",
 				"method": "set",
@@ -669,16 +693,14 @@
 			{
 				"method": "valCompare",
 				"a": "producer",
-				"a_attri": "inputEntity",
-				"a_attri1": "spellSpeed",
+				"a_attri": "inputEntity.spellSpeed",
 				"value": ["Burst", "Focus"],
 				"operator": "in"
 			},
 			{
 				"method": "valCompare",
 				"a": "producer",
-				"a_attri": "inputEntity",
-				"a_attri1": "spellSpeed",
+				"a_attri": "inputEntity.spellSpeed",
 				"value": "Fast",
 				"operator": "="
 			},
@@ -879,24 +901,21 @@
 			{
 				"method": "valCompare",
 				"a": "producer",
-				"a_attri": "inputEntity",
-				"a_attri1": "type",
+				"a_attri": "inputEntity.type",
 				"value": "Unit",
 				"operator": "="
 			},
 			{
 				"method": "valCompare",
 				"a": "producer",
-				"a_attri": "inputEntity",
-				"a_attri1": "spellSpeed",
+				"a_attri": "inputEntity.spell",
 				"value": ["Burst", "Focus"],
 				"operator": "in"
 			},
 			{
 				"method": "valCompare",
 				"a": "producer",
-				"a_attri": "inputEntity",
-				"a_attri1": "spellSpeed",
+				"a_attri": "inputEntity.spellSpeed",
 				"value": ["Slow", "Fast"],
 				"operator": "in"
 			},

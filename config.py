@@ -134,10 +134,11 @@ class card(object):
         self.maxhealth = self.health
         self.onPlay = 0
         self.target = []
+        self.property = []
 
 
     def __str__(self):
-        return f'({self.name} {self.location} {self.index} {self.owner} {self.type})'
+        return f'({self.name} {self.location} {self.index} {self.owner} {self.type} {self.keywords})'
 
     def activateCall(self, triggerStr, function):
         try:

@@ -41,12 +41,10 @@ with open('set.json', encoding="utf8") as json_file:
             if type(value) == 'string' and value.isnumeric():
                 value = int(value)
             db[cardCode][key] = value
-    with open('testcard.json', encoding="utf8") as json_file:
-        db['DUMMY69']['effect'] = json.load(json_file)
-    with open('testcard_attri.json', encoding="utf8") as json_file:
+    with open('dummy.json', encoding="utf8") as json_file:
         dummyval = json.load(json_file)
-        db['DUMMY69'].update(dummyval['dummy'])
-        db['DUMMYTARGET'].update(dummyval['defender'])
+        db['DUMMY69'] = dummyval['DUMMY69']
+        db['DUMMYTARGET'] = dummyval['DUMMYTARGET']
 
 with open('set_effects.json', encoding="utf8") as json_file:
     for cardCode, effect in json.load(json_file).items():
