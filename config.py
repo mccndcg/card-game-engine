@@ -31,6 +31,8 @@ def modifier(self, variable, value, operator):
         setattr(self, variable, var + value)
     elif operator == 'subtract':
         setattr(self, variable, var - value)
+    elif operator == 'pop':
+        getattr(self, variable).remove(value)
     print(textColor('grey', variable),
           textColor('grey', var), textColor('yellow', getattr(self, variable)))
     # return value for modifyValue to pass to feedbackGuy
@@ -138,7 +140,7 @@ class card(object):
 
 
     def __str__(self):
-        return f'({self.name} {self.location} {self.index} {self.owner} {self.type} {self.keywords})'
+        return f'({self.name} {self.location} {self.index} {self.owner} {self.type} {self.keywords} {self.old_location})'
 
     def activateCall(self, triggerStr, function):
         try:
@@ -232,6 +234,7 @@ class spielberg(object):
             self.roster['card'].update({x.uid: x})
             # 'set origin'
             try:
+                x.old_location = 'void'
                 x.creator = dictVal['origin'].name
             except KeyError:
                 x.creator = 'init'
@@ -265,19 +268,30 @@ class spielberg(object):
         return x
 
     def createSubscriber(self, entity, condition):
+
+        def setter(trigger, directory):
+            try:
+                if entity not in directory[trigger]:
+                    directory[trigger].append(entity)
+            except KeyError:
+                directory[trigger] = [entity]
+
         if 'trigger' in condition:
+            if type(condition['trigger']) is list:
+                [setter(subtrigger, self.triggerDirectory) for
+                subtrigger in condition['trigger']]
+            else:
+                setter(condition['trigger'], self.triggerDirectory)
             directory = self.triggerDirectory
-            trigger = condition['trigger']
         elif 'negate' in condition:
-            directory = self.overrideDirectory
-            trigger = condition['negate']
+            if type(condition['negate']) is list:
+                [setter(subtrigger, self.triggerDirectory) for
+                subtrigger in condition['negate']]
+            else:
+                setter(condition['negate'], self.triggerDirectory)
         else:
             return
-        try:
-            if entity not in directory[trigger]:
-                directory[trigger].append(entity)
-        except KeyError:
-            directory[trigger] = [entity]
+
 
     def createPlayer(self, owner):
         x = nexus(owner)

@@ -1,2 +1,2 @@
-x = {'a': 'test'}
-print(getattr(x, 'a'))
+if 5 != [1,2,3]:
+    print('ok')

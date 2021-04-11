@@ -1053,6 +1053,7 @@
 				{
 				"func": "modifyEntity",
 				"param":{
+					"trigger": "summon",
 					"target": [0],
 					"attribute": "location",
 					"method": "set",

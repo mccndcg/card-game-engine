@@ -11,6 +11,13 @@ colors = {
     'purple': '\033[1;35;40m'
 }
 
+def contains(a, b):
+    if type(a) is list and (b in a):
+        return True
+    elif type(b) is list and (a in b):
+        return True
+    else:
+        return False
 
 ops = {
     '>': operator.gt,
@@ -21,7 +28,7 @@ ops = {
     '-': operator.sub,
     '+': operator.add,
     'set': operator.eq,
-    'in': operator.contains
+    'in': contains
 }
 db = {}
 

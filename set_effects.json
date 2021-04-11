@@ -26,12 +26,56 @@
   "DUMMYTARGET": {
     "condition": [
       {
-        "method": "valCompare",
-        "a": "feedback",
-        "a_attri": "value",
-        "value": "graveyard",
-        "operator": "="
+        "trigger": ["summon", "round_end"],
+				"method": "valCompare",
+				"a": "this",
+				"a_attri": "location",
+				"value": "board",
+				"operator": "="
+      },
+      {
+				"method": "monad"
+      },
+      {
+        "trigger": "round_end",
+				"method": "valCompare",
+				"a": "this",
+				"a_attri": "countdown_timer",
+				"value": 0,
+				"operator": "="
+      },
+      {
+        "trigger": "countdown activate",
+				"method": "autotrue"
       }
-    ]
+		],
+		"target": [
+			{
+				"shorthand": "this"
+			}],
+		"effect": [
+				{
+				"condition": {"True": [0, 1]},
+				"func": "modifyEntity",
+				"param":{
+					"target": [0],
+					"attribute": "countdown_timer",
+					"method": "set",
+					"value": 1}
+				},
+        {
+				"condition": {"True": [0, 2]},
+				"func": "modifyEntity",
+				"param":{
+					"target": [0],
+					"attribute": "countdown_timer",
+					"method": "set",
+					"value": 10}
+				},
+        {
+      	"condition": {"True": 3},
+				"func": "testFunc"
+				}
+		]
   }
 }

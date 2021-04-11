@@ -6,20 +6,21 @@ import helpers
 toggle = True
 toggle = False
 command = []
-command = ['battle', 'attack', '0', 'commit', 'defend', '0', '0', 'commit']
+#command = ['battle', 'attack', '0', 'commit', 'defend', '0', '0', 'commit']
+command = ['create', 'activate', '0', 'pass respond', 'pass', 'pass']
 
-def activateEntity(entity, b):
+def activateEntity(entity, script):
     def contextMan():
         if type(entity) is list:
             for subEntity in entity:
-                activateEntity(subEntity, b)
+                activateEntity(subEntity, script)
         else:
             actuator()
     def actuator():
-        if not negateGuy(entity, b['trigger']):
-            print(helpers.textColor('green', ('Activating '+ str(entity))))
-            activateCall(entity, b['trigger'])
-            feedbackGuy(entity, b['trigger'])
+        if not negateGuy(entity, script['trigger']):
+            print(helpers.textColor('green', f"Activating {str(entity)}"))
+            activateCall(entity, script['trigger'])
+            feedbackGuy(entity, script['trigger'])
     contextMan()
 
 def negateGuy(entity, trigger):
@@ -95,11 +96,13 @@ def getInput():
             print(x)
     def dummytest(inputString):
         if inputString == 'create':
-            createEntity({'cardCode': 'DUMMYTARGET', 'location': 'board', 'owner': 'self'})
             createEntity({'cardCode': 'DUMMY69', 'location': 'board', 'owner': 'oppo'})
+            createEntity({'cardCode': 'DUMMYTARGET', 'location': 'board', 'owner': 'self'})
         elif inputString == 'kill':
-            x = [x for x in director.roster['card'].values() if x.cardCode == 'DUMMY69']
+            x = [x for x in director.roster['card'].values() if x.cardCode == 'DUMMYTARGET']
             modifyEntity(x, {'attribute': 'location', 'value': 'graveyard', 'method': 'set'})
+        elif inputString == 'fleeting':
+            x = [x for x in director.roster['card'].values() if x.location == 'hand']
         elif inputString == 'summon':
             x = [x for x in director.roster['card'].values() if x.cardCode == 'DUMMY69']
             modifyEntity(x, {'attribute': 'location', 'value': 'board', 'method': 'set'})
@@ -158,6 +161,7 @@ def init_game():
 
 def game(kurosawa):
     kurosawa.activateCall(activateCall)
+    feedbackGuy(None, kurosawa.state)
     game(kurosawa)
 
 
@@ -248,6 +252,7 @@ def modifyEntity(entity, script):
         '''
         entity.feedbackValue = value
         entity.feedbackAttribute = attribute
+        entity.feedbackOperator = script['method']
         trigger = ['modifyEntity']
         try:
             if type(script['trigger']) is list:
@@ -294,7 +299,7 @@ def activateCall(entity, trigger):
     4. Effect can also be conditionless (autotrue).
     5. If conditions are met, call activate.
     '''
-    printer('>', entity.name, '>>', trigger)
+    print(f" > {entity} >> {trigger}")
     conditionmap = []
     try:
         effect = entity.effect
@@ -303,10 +308,15 @@ def activateCall(entity, trigger):
         return
     def conditions(index):
         condition = effect['condition'][index]
-        if 'trigger' in condition.keys() and (trigger != condition['trigger']):
+        if 'trigger' in condition.keys() and (trigger != condition['trigger']) and (trigger not in condition['trigger']):
             return False
         elif condition['method'] == 'autotrue':
             return True
+        elif condition['method'] == 'monad':
+            if entity == entity.target:
+                return True
+            else:
+                return False
         else:
             return(helpers.valueCheck(entity, condition, director, index))
     def effectCycler():
@@ -317,6 +327,8 @@ def activateCall(entity, trigger):
             '''
             Returns true if bool and condition mismatch.
             '''
+
+
             if digitalBoolean != conditions(conIndex):
                 return True
             return False
@@ -337,7 +349,9 @@ def activateCall(entity, trigger):
                 elif type(condition) == list:
                     for subCondition in condition:
                         # False: [0, 1]
-                        if type(condition) == int and inner_check(subCondition, digitalBoolean):
+                        if type(subCondition) == int and inner_check(subCondition, digitalBoolean):
+
+
                             flag = False
                             break
                         # False: [[0, 1], 2]

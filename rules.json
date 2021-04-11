@@ -105,20 +105,36 @@
 			{
 				"shorthand": "target",
 				"attribute": "striketarget"
+			},
+			{
+				"shorthand": "target"
 			}],
 		"effect": [
 			{
 			"func": "modifyEntity",
 			"param":{
+				"trigger": "damage entity",
 				"modifiers": ["dynamic"],
 				"target": [0],
 				"attribute": "health",
-				"method": "set",
-				"value": "0.attack"}
+				"method": "subtract",
+				"value": "1.attack"}
 			}
 		]
 	},
-	"death": {
+
+	"barrier": {
+		"condition": [
+			{
+				"negate": "damage entity",
+				"method": "valCompare",
+				"a": "target",
+				"a_attri": "keywords",
+				"value": "Barrier",
+				"operator": "in"
+			}
+		]},
+	"slay": {
 		"condition": [
 			{
 				"trigger": "modifyEntity",
@@ -135,19 +151,131 @@
 		"effect": [
 			{
 				"condition": {"True": 0},
-				"func": "exitFunc"
+				"func": "testFunc"
+			}
+		]
+	},
+	"remove fleeting": {
+		"condition": [
+			{
+				"trigger": "summon",
+				"method": "valCompare",
+				"a": "target",
+				"a_attri": "keywords",
+				"value": "Fleeting",
+				"operator": "in"
+			}
+		],
+		"target": [
+			{
+				"shorthand": "target"
+			}],
+		"effect": [
+			{
+			"condition": {"True": 0},
+			"func": "modifyEntity",
+			"param":{
+				"target": [0],
+				"attribute": "keywords",
+				"method": "pop",
+				"value": "Fleeting"}
 			}
 		]
 	},
 	"forbid entity attack": {
 		"condition": [
 			{
-				"negate": "modifyEntity",
+				"negate": "set to battle",
 				"method": "valCompare",
 				"a": "target",
 				"a_attri": "keywords",
 				"value": "Immobile",
-				"operator": "in"}
+				"operator": "in"
+			}
+		]
+	},
+	"countdown advance": {
+		"condition": [
+			{
+				"trigger": "round_end",
+				"method": "autotrue"
+			}
+		],
+		"target": [
+			{
+				"filter":  {
+					"modifiers": ["dynamic"],
+					"entity": "card",
+					"conditions": {
+						"keywords": {"operator": "in", "value": "Countdown"},
+						"location": "board"
+					}}
+			}	],
+		"effect": [
+			{
+			"func": "modifyEntity",
+			"param":{
+				"target": [0],
+				"attribute": "countdown_timer",
+				"method": "subtract",
+				"value": 1}
+			}
+		]
+	},
+	"countdown zero": {
+		"condition": [
+			{
+				"trigger": "round_end",
+				"method": "autotrue"
+			}
+		],
+		"target": [
+			{
+				"filter":  {
+					"modifiers": ["dynamic"],
+					"entity": "card",
+					"conditions": {
+						"keywords": {"operator": "in", "value": "Countdown"},
+						"location": "board",
+						"countdown_timer": 0
+					}}
+			}	],
+		"effect": [
+			{
+				"func": "callFeedbackGuy",
+				"param":{
+					"target": [0],
+					"trigger": "countdown activate"
+					}
+			}
+		]
+	},
+	"destroy via ephemeral": {
+		"condition": [
+			{
+				"trigger": "round_end",
+				"method": "autotrue"
+			}
+		],
+		"target": [
+			{
+				"filter":  {
+					"modifiers": ["dynamic"],
+					"entity": "card",
+					"conditions": {
+						"keywords": {"operator": "in", "value": "Ephemeral"},
+						"location": "board"
+					}}
+			}	],
+		"effect": [
+			{
+				"func": "modifyEntity",
+				"param":{
+					"target": [0],
+					"attribute": "location",
+					"method": "set",
+					"value": "graveyard"}
+			}
 		]
 	}
 }

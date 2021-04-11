@@ -26,8 +26,6 @@ def string2entity(entity, alias, director):
         return(director.producer.inputEntity)
     elif alias == 'producer.inputEntityLast':
         return(director.producer.inputEntityLast)
-    elif alias == 'stack':
-        return(getattr(director, targetEntity['stack']))
     elif alias == 'none':
         return(None)
     else:
@@ -46,24 +44,18 @@ def valueCheck(entity, reqt, director, idx):
     def actuator(a, c):
         if a is False:
             return False
-        if reqt['operator'] == 'in' and (type(c) is list):
-            a, c = c, a
         try:
             if ops[reqt['operator']](a, c):
-                # print(textColor('purple', idx), textColor('green', 'conditions pass'), a, c, reqt['a_attri'])
+                printer(textColor('purple', idx), textColor('green', 'conditions pass'), a, c, reqt['a_attri'])
                 return True
             else:
-                # print(textColor('purple', idx), textColor('red', 'conditions fail'), a, c, reqt['a_attri'])
+                printer(textColor('purple', idx), textColor('red', 'conditions fail'), a, c, reqt['a_attri'])
                 return False
         except TypeError:
             # ex: compare 1(int) and graveyard(str)
             return False
     def contextMan(method):
-        if method == 'valCompare':
-            return actuator(getA(method), getC(method))
-        elif method == 'valDelta':
-            return ( actuator(getA('valCompare'), getC('valCompare')) and
-            actuator(getA('valDelta_old'), getC('valDelta_old')) )
+        return actuator(getA(method), getC(method))
     def getA_entity():
         entityA = deepcopy(reqt['a'])
         try:
@@ -96,9 +88,7 @@ def valueCheck(entity, reqt, director, idx):
             except TypeError:
                 pass
             try:
-                if method == 'valDelta_old':
-                    a = getattr(a, 'old_' + reqt['a_attri'])
-                elif method == 'valCompare':
+                if method == 'valCompare':
                     a = subparser(reqt['a_attri'], a)
             # ex 1
             except AttributeError:
@@ -110,9 +100,7 @@ def valueCheck(entity, reqt, director, idx):
         try:
             if reqt['value'] == 'this':
                 c = entity
-            elif method == 'valDelta_old':
-                c = reqt['value_old']
-            elif method == 'valCompare':
+            if method == 'valCompare':
                 c = reqt['value']
         # B is entity
         except KeyError:
@@ -182,7 +170,14 @@ def acquire_target(entity, targetEntity, director):
     if type(targetEntity) is list:
         targetEntity = choice(targetEntity)
     try:
+
         a = string2entity(entity, targetEntity['shorthand'], director)
+        if targetEntity['shorthand'] == 'stack':
+            try:
+                return(getattr(director, targetEntity['stack']))
+            except AttributeError:
+                setattr(entity, targetEntity['stack'], [])
+                return(getattr(director, targetEntity['stack']))
         if a is not False:
             if 'attribute' in targetEntity:
                 return getattr(a, targetEntity['attribute'])
