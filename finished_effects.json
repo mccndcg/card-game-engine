@@ -1,0 +1,156 @@
+{
+  "countdown": {
+    "condition": [
+      {
+        "trigger": ["summon", "round_end"],
+        "method": "valCompare",
+        "a": "this",
+        "a_attri": "location",
+        "value": "board",
+        "operator": "="
+      },
+      {
+        "method": "monad"
+      },
+      {
+        "trigger": "round_end",
+        "method": "valCompare",
+        "a": "this",
+        "a_attri": "countdown_timer",
+        "value": 0,
+        "operator": "="
+      },
+      {
+        "trigger": "countdown activate",
+        "method": "autotrue"
+      }
+    ],
+    "target": [
+      {
+        "shorthand": "this"
+      }],
+    "effect": [
+        {
+        "condition": {"True": [0, 1]},
+        "func": "modifyEntity",
+        "param":{
+          "target": [0],
+          "attribute": "countdown_timer",
+          "method": "set",
+          "value": 1}
+        },
+        {
+        "condition": {"True": [0, 2]},
+        "func": "modifyEntity",
+        "param":{
+          "target": [0],
+          "attribute": "countdown_timer",
+          "method": "set",
+          "value": 10}
+        },
+        {
+        "condition": {"True": 3},
+        "func": "exitFunc"
+        }
+    ]
+  },
+  "aura": {
+    "condition": [
+      {
+        "trigger": "summon",
+				"method": "monad"
+      },
+      {
+				"trigger": "changeLocation",
+				"method": "valCompare",
+				"a": "this",
+				"a_attri": "location",
+				"value": "graveyard",
+				"operator": "="
+      },
+      {
+				"trigger": ["createEntity", "changeLocation"],
+				"method": "valCompare",
+				"a": "target",
+				"a_attri": "location",
+				"value": "hand",
+				"operator": "="
+      },
+      {
+				"method": "valCompare",
+				"a": "target",
+				"a_attri": "owner",
+				"b": "this",
+        "b_attri": "owner",
+				"operator": "="
+      },
+      {
+				"method": "valCompare",
+				"a": "this",
+				"a_attri": "location",
+				"value": "board",
+				"operator": "="
+      },
+      {
+        "method": "monad"
+      }
+		],
+		"target": [
+      {
+        "filter":  {
+          "modifiers": ["dynamic"],
+          "entity": "card",
+          "conditions": {
+            "owner": "this.owner",
+            "location": "hand"
+          }}
+      },
+      {
+        "shorthand": "target"
+      }],
+		"effect": [
+				{
+        "condition": {"True": 0},
+				"func": "modifyEntity",
+				"param":{
+					"target": [0],
+					"attribute": "status",
+					"method": "insert",
+					"value": {
+            "attribute": "cost",
+            "method": "subtract",
+            "value": 1
+          }
+        }
+      },
+      {
+      "condition": {"True": [0, 5]},
+      "func": "modifyEntity",
+      "param":{
+        "target": [0],
+        "attribute": "status",
+        "method": "pop",
+        "value": {
+          "attribute": "cost",
+          "method": "subtract",
+          "value": 1
+        }
+      }
+    },
+    {
+    "condition": {"True": [2, 3, 4]},
+    "func": "modifyEntity",
+    "param":{
+      "target": [1],
+      "attribute": "status",
+      "method": "insert",
+      "value": {
+        "attribute": "cost",
+        "method": "subtract",
+        "value": 1
+      }
+    }
+    }
+		]
+  }
+}

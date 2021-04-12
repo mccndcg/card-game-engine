@@ -3,16 +3,16 @@
     {
     "region": "Piltover & Zaun",
     "regionRef": "PiltoverZaun",
-    "attack": 10,
+    "attack": 5,
     "cost": 2,
-    "health": 10,
+    "health": 9,
     "description": "dummy",
     "descriptionRaw": "dummy",
     "levelupDescription": "",
     "levelupDescriptionRaw": "",
     "flavorText": "dummy",
     "artistName": "dummy",
-    "name": "OPPONENT",
+    "name": "DOPPO",
     "cardCode": "DUMMY69",
     "keywords": [],
     "keywordRefs": [],
@@ -32,7 +32,7 @@
     {
       "region": "Piltover & Zaun",
       "regionRef": "PiltoverZaun",
-      "attack": 99,
+      "attack": 9,
       "cost": 2,
       "health": 99,
       "description": "dummy",
@@ -41,9 +41,9 @@
       "levelupDescriptionRaw": "",
       "flavorText": "dummy",
       "artistName": "dummy",
-      "name": "DUMMY SELF",
+      "name": "DSELF",
       "cardCode": "DUMMYTARGET",
-      "keywords": ["Barrier", "Countdown", "Ephemeral"],
+      "keywords": ["Barrier", "Countdown", "Ephemeral", "Fearsome"],
       "keywordRefs": [],
       "spellSpeed": "",
       "spellSpeedRef": "",
@@ -56,7 +56,6 @@
       "collectible": true,
       "set": "DUMMY SELF",
       "effect": {"test": "Test"},
-      "countdown": 4,
-      "location": "void"
+      "countdown": 4
     }
 }

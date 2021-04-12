@@ -11,13 +11,25 @@ colors = {
     'purple': '\033[1;35;40m'
 }
 
-def contains(a, b):
+def combinator(a, b):
+    if type(a) is list and type(b) is list:
+        return a.extend(b)
+
+def inside(a, b):
     if type(a) is list and (b in a):
         return True
     elif type(b) is list and (a in b):
         return True
     else:
         return False
+
+def outside(a, b):
+    if type(a) is list and (b in a):
+        return False
+    elif type(b) is list and (a in b):
+        return False
+    else:
+        return True
 
 ops = {
     '>': operator.gt,
@@ -28,7 +40,8 @@ ops = {
     '-': operator.sub,
     '+': operator.add,
     'set': operator.eq,
-    'in': contains
+    'in': inside,
+    'not in': outside
 }
 db = {}
 

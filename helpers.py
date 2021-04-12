@@ -6,6 +6,7 @@ from copy import deepcopy
 
 toggle = True
 toggle = False
+toggler = 1
 
 def printer(*args):
     if toggle:
@@ -42,6 +43,8 @@ def valueCheck(entity, reqt, director, idx):
     5. Return truthiness.
     '''
     def actuator(a, c):
+        if toggler == 2:
+            print(a,c)
         if a is False:
             return False
         try:
@@ -55,30 +58,36 @@ def valueCheck(entity, reqt, director, idx):
             # ex: compare 1(int) and graveyard(str)
             return False
     def contextMan(method):
-        return actuator(getA(method), getC(method))
-    def getA_entity():
-        entityA = deepcopy(reqt['a'])
+        if toggler == 2:
+            try:
+                print(entity, entity.target, reqt['a'], reqt['a_attri'])
+            except AttributeError:
+                print('error')
+        return actuator(getA(method, reqt['a'], reqt['a_attri']), getC(method))
+    def get_entity(targetString):
+        entityTarget = deepcopy(targetString)
         try:
-            entityA = getAlias(entityA)
+            entityTarget = getAlias(entityTarget)
         except KeyError:
             pass
         # resolve a: the main entity
-        a = string2entity(entity, entityA, director)
+        a = string2entity(entity, entityTarget, director)
         if a:
             return a
-        elif type(entityA) is dict:
-            return(preFilter(entityA, entity, director))
+        elif type(entityTarget) is dict:
+            return(preFilter(entityTarget, entity, director))
         elif a[:6] == 'target':
             return(entity.targetStack[int(targ.strip('target#'))])
+
         return a
-    def getA(method):
-        def subparser(attributeString, target):
-            getter = lambda a, b: getattr(a, b)
-            attribs = attributeString.split('.')
-            attribs.insert(0, target)
-            return reduce(getter, attribs)
-        a = getA_entity()
-        if reqt['a_attri'] == 'count':
+    def subparser(attributeString, target):
+        getter = lambda a, b: getattr(a, b)
+        attribs = attributeString.split('.')
+        attribs.insert(0, target)
+        return reduce(getter, attribs)
+    def getA(method, reqtEntity, reqtAttri):
+        a = get_entity(reqtEntity)
+        if reqtAttri == 'count':
             a = len(a)
         else:
             # patchwork for filter{get: 1}. filter function returns a []
@@ -89,10 +98,10 @@ def valueCheck(entity, reqt, director, idx):
                 pass
             try:
                 if method == 'valCompare':
-                    a = subparser(reqt['a_attri'], a)
+                    a = subparser(reqtAttri, a)
             # ex 1
             except AttributeError:
-                printer(textColor('purple', idx), textColor('red', 'conditions fail'), 'no attribute', reqt['a_attri'])
+                printer(textColor('purple', idx), textColor('red', 'conditions fail'), 'no attribute', reqtAttri)
                 return False
         return a
     def getC(method):
@@ -100,17 +109,14 @@ def valueCheck(entity, reqt, director, idx):
         try:
             if reqt['value'] == 'this':
                 c = entity
-            if method == 'valCompare':
+            elif method == 'valCompare':
                 c = reqt['value']
         # B is entity
         except KeyError:
-            entityB = deepcopy(reqt['b'])
-            try:
-                entityB = getAlias(entityB)
-            except KeyError:
-                pass
-            b = preFilter(entityB, entity, director)
-            c = getattr(b, reqt['b_attri'])
+            c = getA(method, reqt['b'], reqt['b_attri'])
+        except AttributeError:
+            printer(textColor('purple', idx), textColor('red', 'conditions fail'), 'no attribute', reqt['value'])
+            return False
         return c
     return contextMan(reqt['method'])
 

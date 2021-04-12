@@ -1,4 +1,17 @@
 {
+	"select defend undo": {
+		"condition": [
+			{
+				"trigger": "pass dselect",
+				"method": "autotrue"
+			}],
+		"effect": [
+			{
+				"func": "modifyState",
+				"param": {"state": "defender setup"}
+			}
+		]
+	},
 	"resolve battle": {
 		"target": [
 				{
@@ -6,13 +19,31 @@
 						"modifiers": ["dynamic"],
 						"entity": "card",
 						"conditions": {
-							"owner": "producer.roundturn",
+							"owner": "producer.naturalturn",
 							"location": "battlers",
 							"type": "Unit"
 						}}
 				},
 				{
 					"shorthand": "producer"
+				},
+				{
+					"filter":
+						{"modifiers": ["dynamic"],
+						"entity": "nexus",
+						"conditions": {
+							"owner": "producer.naturalturn"
+						}
+					}
+				},
+				{
+					"filter":  {
+						"modifiers": ["dynamic"],
+						"entity": "card",
+						"conditions": {
+							"location": "battlers",
+							"type": "Unit"
+						}}
 				}],
 		"effect": [
 			{
@@ -25,7 +56,16 @@
 			{
 			"func": "modifyEntity",
 			"param":{
+				"target": [2],
+				"attribute": "rally",
+				"method": "set",
+				"value": 0}
+			},
+			{
+			"func": "modifyEntity",
+			"param":{
 				"target": [1],
+				"trigger": "set player from natural turn",
 				"attribute": "naturalturn",
 				"method": "cycle",
 				"value": ["oppo", "self"]}
@@ -33,13 +73,10 @@
 			{
 			"func": "modifyEntity",
 			"param":{
-				"trigger": "set opposite",
-				"modifiers": ["dynamic"],
-				"target": [1],
-				"attribute": "player",
+				"target": [3],
+				"attribute": "location",
 				"method": "set",
-				"value": "producer.naturalturn"
-				}
+				"value": "board"}
 			},
 			{
 				"func": "modifyState",
@@ -121,6 +158,13 @@
 			{
 				"trigger": "defend",
 				"method": "autotrue"
+			},
+			{
+				"method": "valCompare",
+				"a": "cue",
+				"a_attri": "command",
+				"value": "pass dselect",
+				"operator": "="
 			}],
 			"target": [
 					{
@@ -158,6 +202,12 @@
 			{
 			"func": "addStack",
 			"param": {
+					"target": ["pass dselect"],
+					"stack": "options"}
+			},
+			{
+			"func": "addStack",
+			"param": {
 					"target": [0],
 					"stack": "options"}
 			},
@@ -168,6 +218,10 @@
 			},
 			{
 			"func": "getInput"
+			},
+			{
+			"condition": {"True": 1},
+			"func": "break"
 			},
 			{
 			"func": "resetStack",
@@ -181,6 +235,12 @@
 					"stack": "options"}
 			},
 			{
+			"func": "addStack",
+			"param": {
+					"target": ["pass dselect"],
+					"stack": "options"}
+			},
+			{
 			"func": "printStack",
 			"param": {
 					"stack": "options"}
@@ -189,23 +249,36 @@
 			"func": "getInput"
 			},
 			{
-			"func": "modifyEntity",
-			"param":{
-				"target": [1],
-				"attribute": "location",
-				"method": "set",
-				"value": "battlers"
-				}
+			"condition": {"True": 1},
+			"func": "break"
+			},
+			{
+				"func": "modifyEntity",
+				"param":{
+					"target": [1],
+					"attribute": "todefend",
+					"method": "set",
+					"value_pointer": 3}
 			},
 			{
 			"func": "modifyEntity",
 			"param":{
-				"target": [3],
-				"attribute": "defender",
-				"method": "set",
-				"value_pointer": 1
-				}
-			}
+				"trigger": "set defender",
+				"subparam": [
+					{
+						"target": [1],
+						"attribute": "location",
+						"method": "set",
+						"value": "battlers"
+					},
+					{
+						"target": [3],
+						"attribute": "defender",
+						"method": "set",
+						"value_pointer": 1
+					}
+				]
+			}}
 		]
 	},
 	"set attack": {
@@ -213,6 +286,13 @@
 			{
 				"trigger": "attack",
 				"method": "autotrue"
+			},
+			{
+				"method": "valCompare",
+				"a": "cue",
+				"a_attri": "command",
+				"value": "pass aselect",
+				"operator": "="
 			}],
 			"target": [
 					{
@@ -235,6 +315,12 @@
 					"stack": "options"}
 			},
 			{
+			"func": "addStack",
+			"param": {
+					"target": ["pass aselect"],
+					"stack": "options"}
+			},
+			{
 			"condition": {"True": 0},
 			"func": "addStack",
 			"param": {
@@ -248,6 +334,10 @@
 			},
 			{
 			"func": "getInput"
+			},
+			{
+			"condition": {"True": 1},
+			"func": "break"
 			},
 			{
 			"func": "modifyEntity",
@@ -621,23 +711,15 @@
 			{
 			"func": "modifyEntity",
 			"param":{
+				"trigger": "set player from natural turn",
 				"target": [1],
 				"attribute": "naturalturn",
 				"method": "cycle",
 				"value": ["oppo", "self"]
 				}
 			},
-			{
-			"func": "modifyEntity",
-			"param":{
-				"trigger": "set opposite",
-				"modifiers": ["dynamic"],
-				"target": [1],
-				"attribute": "player",
-				"method": "set",
-				"value": "producer.naturalturn"
-				}
-			},
+			{"func": "resetStack",
+			"param": {"stack": "spellStack"}},
 			{
 				"func": "modifyState",
 				"param": {"state": "a"}
@@ -805,12 +887,8 @@
 					}
 			},
 			{
-				"func": "printStack",
-				"param": {"stack": "spellStack"}
-			},
-			{
 				"condition": {"False": 3},
-				"func": "feedbackGuy",
+				"func": "callFeedbackGuy",
 				"param":{
 					"trigger": "pass respond"
 					}
@@ -826,8 +904,7 @@
 	        "entity": "card",
 	        "conditions": {
 	          "owner": "producer.player",
-	          "location": "hand",
-	          "type": "Unit"
+	          "location": "hand"
 	        }},
 	      "a_attri": "count",
 	      "value": 0,
@@ -908,7 +985,7 @@
 			{
 				"method": "valCompare",
 				"a": "producer",
-				"a_attri": "inputEntity.spell",
+				"a_attri": "inputEntity.spellSpeed",
 				"value": ["Burst", "Focus"],
 				"operator": "in"
 			},
@@ -1161,6 +1238,9 @@
 				}
 			},
 			{
+				"func": "createDummy"
+			},
+			{
 			"func": "createDeck",
 			"param":{
 				"modifiers": ["dynamic"],
@@ -1177,9 +1257,6 @@
 				"method": "set",
 				"value": "hand"
 				}
-			},
-			{
-				"func": "createDummy"
 			},
 			{
 			"func": "modifyState",

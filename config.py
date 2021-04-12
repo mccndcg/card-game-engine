@@ -3,12 +3,31 @@ from helpers import textColor, deepcopy
 
 
 def modifier(self, variable, value, operator):
+    '''
+    - Modifies variables
+                {
+                "condition": {"True": 0},
+                    "func": "modifyEntity",
+                    "param":{
+                        "target": [0],
+                        "attribute": "status",
+                        "method": "insert",
+                        "value": {
+                            "attribute": "cost",
+                            "method": "subtract",
+                            "value": 1
+                            }}}
+    '''
     try:
-        var = getattr(self, variable)
+        var = deepcopy(getattr(self, variable))
     # 'attribute not initialized'
     except AttributeError:
-        setattr(self, variable, 0)
-        var = 0
+        if type(value) == list or type(value) == dict:
+            setattr(self, variable, [])
+            var = []
+        else:
+            setattr(self, variable, 0)
+            var = 0
     # set old value
     setattr(self, 'old_' + variable, var)
     # default operator is set
@@ -33,6 +52,18 @@ def modifier(self, variable, value, operator):
         setattr(self, variable, var - value)
     elif operator == 'pop':
         getattr(self, variable).remove(value)
+        if variable == 'status':
+            # reset
+            [setattr(self, key, db[self.cardCode][key]) for key in db[self.cardCode].keys()]
+            # recalculate
+            for substatus in getattr(self, variable):
+                modifier(self, substatus['attribute'], substatus['value'], substatus['method'])
+    elif operator == 'insert':
+        getattr(self, variable).append(value)
+        if variable == 'status':
+            [setattr(self, key, db[self.cardCode][key]) for key in db[self.cardCode].keys()]
+            for substatus in getattr(self, variable):
+                modifier(self, substatus['attribute'], substatus['value'], substatus['method'])
     print(textColor('grey', variable),
           textColor('grey', var), textColor('yellow', getattr(self, variable)))
     # return value for modifyValue to pass to feedbackGuy
@@ -64,6 +95,9 @@ class stateObject(object):
     def __init__(self, effect, name):
         self.effect = effect
         self.name = name
+
+    def __repr__(self):
+        return f'({self.name})'
 
 class producer(object):
 
@@ -139,8 +173,8 @@ class card(object):
         self.property = []
 
 
-    def __str__(self):
-        return f'({self.name} {self.location} {self.index} {self.owner} {self.type} {self.keywords} {self.old_location})'
+    def __repr__(self):
+        return f'({self.cost} {self.name} {self.location}({self.index}) {self.owner} {self.type} {self.keywords} {self.attack}/{self.health})'
 
     def activateCall(self, triggerStr, function):
         try:
@@ -234,7 +268,6 @@ class spielberg(object):
             self.roster['card'].update({x.uid: x})
             # 'set origin'
             try:
-                x.old_location = 'void'
                 x.creator = dictVal['origin'].name
             except KeyError:
                 x.creator = 'init'
@@ -268,27 +301,38 @@ class spielberg(object):
         return x
 
     def createSubscriber(self, entity, condition):
-
+        '''
+        - Register listeners.
+                "condition": [
+                    {
+                    "trigger": "summon",
+                    "method": "monad"
+                    }]
+        '''
         def setter(trigger, directory):
             try:
                 if entity not in directory[trigger]:
                     directory[trigger].append(entity)
             except KeyError:
                 directory[trigger] = [entity]
-
+        print(entity)
         if 'trigger' in condition:
             if type(condition['trigger']) is list:
+                [print(subtrigger, entity) for subtrigger in condition['trigger']]
                 [setter(subtrigger, self.triggerDirectory) for
                 subtrigger in condition['trigger']]
             else:
+                print(condition['trigger'], entity)
                 setter(condition['trigger'], self.triggerDirectory)
             directory = self.triggerDirectory
         elif 'negate' in condition:
             if type(condition['negate']) is list:
-                [setter(subtrigger, self.triggerDirectory) for
+                [print(subtrigger, entity) for subtrigger in condition['negate']]
+                [setter(subtrigger, self.overrideDirectory) for
                 subtrigger in condition['negate']]
             else:
-                setter(condition['negate'], self.triggerDirectory)
+                print(condition['negate'], entity)
+                setter(condition['negate'], self.overrideDirectory)
         else:
             return
 
