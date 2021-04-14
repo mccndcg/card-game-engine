@@ -70,55 +70,7 @@
 			}
 		]
 	},
-	"entity battle": {
-		"condition": [
-			{
-				"method": "autotrue",
-				"trigger": "entity battle"
-			}
-		],
-		"target": [
-			{
-				"shorthand": "target"
-			},
-			{
-				"shorthand": "target",
-				"attribute": "defender"
-			}],
-		"effect": [
-			{
-				"func": "modifyEntity",
-				"param":{
-					"target": [0],
-					"attribute": "striketarget",
-					"method": "set",
-					"value_pointer": 1}
-			},
-			{
-				"func": "modifyEntity",
-				"param":{
-					"target": [1],
-					"attribute": "striketarget",
-					"method": "set",
-					"value_pointer": 0}
-			},
-			{
-				"func": "callFeedbackGuy",
-				"param":{
-					"target": [0],
-					"trigger": "strike"
-					}
-			},
-			{
-				"func": "callFeedbackGuy",
-				"param":{
-					"target": [1],
-					"trigger": "strike"
-					}
-			}
-		]
 
-	},
 	"strike": {
 		"condition": [
 			{
@@ -251,10 +203,10 @@
 	"slay": {
 		"condition": [
 			{
-				"trigger": "changeLocation",
+				"trigger": "changeLocation---",
 				"method": "valCompare",
 				"a": "target",
-				"a_attri": "feedbackValue",
+				"a_attri": "modifyEntityObject.value",
 				"value": "graveyard",
 				"operator": "="}
 		],
@@ -271,7 +223,7 @@
 			}
 		]
 	},
-	"remove fleeting": {
+	"remove fleeting upon summon": {
 		"condition": [
 			{
 				"trigger": "summon",
@@ -416,5 +368,101 @@
 					"value": "graveyard"}
 			}
 		]
+	},
+	"protodeep": {
+		"condition": [
+			{
+				"trigger": "changeLocation",
+				"a": "target",
+				"a_attri": "modifyEntityObject.value",
+				"value": "hand",
+				"operator": "="}
+			],
+		"target": [
+			{
+				"shorthand": "target"
+			}
+		],
+		"effect": [
+			{
+			"condition": {"True": 0},
+			"func": "sysout",
+			"param": {
+					"line": "Blessed by the deep."}
+			},
+			{
+			"condition": {"True": 0},
+			"func": "modifyEntity",
+			"param":{
+				"target": [0],
+				"attribute": "attack",
+				"method": "add",
+				"value": 1}
+			}]
+	},
+	"prototamper setval": {
+		"condition": [
+			{
+				"tamper": "modifyEntity",
+				"a": "target",
+				"a_attri": "modifyEntityObject.attribute",
+				"value": "attack",
+				"operator": "="}
+			],
+		"target": [
+			{
+				"shorthand": "target",
+				"attribute": "modifyEntityObject"
+			}
+		],
+		"effect": [
+			{
+			"condition": {"True": 0},
+			"func": "modifyEntity",
+			"param": [
+				{
+					"target": [0],
+					"mode": "tamper",
+					"attribute": "value",
+					"method": "set",
+					"value": 5
+				},
+				{
+				"target": [0],
+				"mode": "tamper",
+				"attribute": "method",
+				"method": "set",
+				"value": "set"}
+				]
+			}]
+	},
+	"prototamper addval": {
+		"condition": [
+			{
+				"tamper": "modifyEntity",
+				"a": "target",
+				"a_attri": "modifyEntityObject.attribute",
+				"value": "attack",
+				"operator": "="}
+			],
+		"target": [
+			{
+				"shorthand": "target",
+				"attribute": "modifyEntityObject"
+			}
+		],
+		"effect": [
+			{
+			"condition": {"True": 0},
+			"func": "modifyEntity",
+			"param":
+				{
+					"mode": "tamper",
+					"target": [0],
+					"attribute": "value",
+					"method": "add",
+					"value": 1
+				}
+			}]
 	}
 }

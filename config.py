@@ -2,7 +2,7 @@ from data import db, alias, init_state
 from helpers import textColor, deepcopy
 
 
-def modifier(self, variable, value, operator):
+def modifier(self):
     '''
     - Modifies variables
                 {
@@ -18,6 +18,10 @@ def modifier(self, variable, value, operator):
                             "value": 1
                             }}}
     '''
+    print(self)
+    value = self.modifyEntityObject.value
+    variable = self.modifyEntityObject.attribute
+    operator = self.modifyEntityObject.method
     try:
         var = deepcopy(getattr(self, variable))
     # 'attribute not initialized'
@@ -95,6 +99,7 @@ class stateObject(object):
     def __init__(self, effect, name):
         self.effect = effect
         self.name = name
+        self.selection = ''
 
     def __repr__(self):
         return f'({self.name})'
@@ -171,6 +176,7 @@ class card(object):
         self.onPlay = 0
         self.target = []
         self.property = []
+        self.selection = ''
 
 
     def __repr__(self):
@@ -187,10 +193,6 @@ class card(object):
         origin = deepcopy(self.location)
         #index is positioning in current location
         self.index = director.moveActor(destination, origin, self)
-
-    def modifyValue(self, variable, value, operator):
-        modifier(self, variable, value, operator)
-
 
 class nexus(object):
     _uid = 0
@@ -223,7 +225,7 @@ class spielberg(object):
         self.roster = {'card': {}, 'nexus': {}}
         self.triggerDirectory = {}
         self.overrideDirectory = {}
-        self.constitution = {}
+        self.tamperDirectory = {}
         self.location = {}
         self.producer = producer(self)
         self.deck2 = 'CEBQUAQGAQEAWFA2DQQCMLJ2AIBAGAYIAEAQGAQAAEAQCAZT'
@@ -310,6 +312,8 @@ class spielberg(object):
                     }]
         '''
         def setter(trigger, directory):
+            if type(trigger) is list:
+                [setter(subtrigger) for subtrigger in trigger]
             try:
                 if entity not in directory[trigger]:
                     directory[trigger].append(entity)
@@ -317,22 +321,11 @@ class spielberg(object):
                 directory[trigger] = [entity]
         print(entity)
         if 'trigger' in condition:
-            if type(condition['trigger']) is list:
-                [print(subtrigger, entity) for subtrigger in condition['trigger']]
-                [setter(subtrigger, self.triggerDirectory) for
-                subtrigger in condition['trigger']]
-            else:
-                print(condition['trigger'], entity)
-                setter(condition['trigger'], self.triggerDirectory)
-            directory = self.triggerDirectory
+            setter(condition['trigger'], self.triggerDirectory)
         elif 'negate' in condition:
-            if type(condition['negate']) is list:
-                [print(subtrigger, entity) for subtrigger in condition['negate']]
-                [setter(subtrigger, self.overrideDirectory) for
-                subtrigger in condition['negate']]
-            else:
-                print(condition['negate'], entity)
-                setter(condition['negate'], self.overrideDirectory)
+            setter(condition['negate'], self.overrideDirectory)
+        elif 'tamper' in condition:
+            setter(condition['tamper'], self.tamperDirectory)
         else:
             return
 

@@ -1,4 +1,5 @@
-from config import Cue, spielberg, db
+from dataclasses import dataclass
+from config import Cue, spielberg, db, modifier
 from lor_deckcodes import LoRDeck
 from data import json
 import helpers
@@ -7,8 +8,8 @@ toggle = True
 toggle = False
 toggler = 1
 command = []
-command = ['battle', 'attack', '0', 'commit', 'defend', '0', '1', 'commit']
-#command = ['pass', 'activate', '0']
+#command = ['battle', 'attack', '0', 'commit', 'defend', '0', '1', 'commit']
+command = ['activate', '0']
 
 def activateEntity(entity, script):
     def contextMan():
@@ -83,7 +84,7 @@ def negateMain(listener, trigger, entity):
                 return True
     return False
 
-def feedbackGuy(entity, triggerStr):
+def feedbackGuy(entity, triggerStr, mode=None):
     '''
     Outdated:
     1. triggerDirectory[triggerStr] = [{'entity': v1, 'index': v2}]
@@ -95,10 +96,13 @@ def feedbackGuy(entity, triggerStr):
             for subentity in entity:
                 feedbackGuy(subentity, triggerStr)
         else:
-            errorCheck()
-    def errorCheck():
+            if mode == 'tamper':
+                listenersCheck(director.tamperDirectory)
+            else:
+                listenersCheck(director.triggerDirectory)
+    def listenersCheck(directory):
         try:
-            for listener in director.triggerDirectory[triggerStr]:
+            for listener in directory[triggerStr]:
                 listener.target = entity
                 if toggler == 2:
                     print(f"{triggerStr} {listener}")
@@ -114,7 +118,7 @@ def callFeedbackGuy(script, entity=None):
     feedbackGuy(entity, script['trigger'])
 
 
-def getInput():
+def getInput(entity=None, script=None):
     print('get input: ')
     def cycler(entity, script):
         if type(entity) == list:
@@ -149,8 +153,6 @@ def getInput():
             print(director.producer.state)
         elif inputString == 'player':
             print(director.producer.player)
-        elif inputString == 'break':
-            print(breakhere)
         else:
             print(helpers.textColor('red', 'ERR 01: Command not available. Choose from stack.'))
         getInput()
@@ -162,9 +164,11 @@ def getInput():
     if inp.isnumeric():
         if len(inp) == 1:
             try:
-                inputEntity = director.options[int(inp)]
-                print(inputEntity)
-                director.producer.updateInput(inp, inputEntity)
+                # inputEntity = director.options[int(inp)]
+                # print(inputEntity)
+                # director.producer.updateInput(inp, inputEntity)
+                entity.prevSelection = entity.selection
+                entity.selection = director.options[int(inp)]
             except IndexError:
                 print(helpers.textColor('red', 'ERR 02: Selection not in stack.'))
                 getInput()
@@ -175,6 +179,8 @@ def getInput():
             director.cue.update(inp)
             print(helpers.textColor('green', 'Command accepted.'))
             feedbackGuy(director.cue, inp)
+        elif inp == 'break':
+            return False
         else:
             dummytest(inp)
 
@@ -263,6 +269,23 @@ def modifyEntity(entity, script):
     Builds a list of trigger, script can have ONE or LIST of triggers.
     Iterates triggerlist, then calls feedbackGuy.
     '''
+    @dataclass
+    class modifyEntityObject:
+        attribute: str
+        value: int
+        method: str
+
+        def __repr__(self):
+            return f"({self.method} {self.attribute} {self.value})"
+    #
+    def judge(thing):
+        method = ['set', 'clamp', 'add', 'subtract']
+        value = (len(method) - method.index(thing.method))*10
+        try:
+            value += (len(method) - method.index(thing.value))
+        except:
+            pass
+        return value
     def contextMan(entity):
         if type(script['attribute']) is str:
             actuator(entity, script['attribute'], script['value'])
@@ -275,9 +298,7 @@ def modifyEntity(entity, script):
         '''
         Performs the actual call-out procedure.
         '''
-        entity.feedbackValue = value
-        entity.feedbackAttribute = attribute
-        entity.feedbackOperator = script['method']
+        entity.modifyEntityObject = modifyEntityObject(attribute, value, script['method'])
         trigger = ['modifyEntity']
         try:
             if type(script['trigger']) is list:
@@ -286,10 +307,26 @@ def modifyEntity(entity, script):
                 trigger.append(script['trigger'])
         except:
             pass
+        # try:
+        #     if script['mode'] == 'tamper':
+        #         entity.tamperList.append(modifyEntityObject(attribute, value, script['method']))
+        #         return
+        # except KeyError:
+        #     pass
         if attribute == 'location':
             trigger.append('changeLocation')
             entity.changeLocation(value, director)
-        entity.modifyValue(attribute, value, script['method'])
+
+        #entity.modifyEntityObject.tamperList = []
+        for subTrigger in trigger:
+            feedbackGuy(entity, 'modifyEntity', 'tamper')
+        # entity.modifyEntityObject.tamperList.sort(key=judge)
+        # entity.modifyEntityObject.tamperList.reverse()
+        # print(entity.modifyEntityObject.tamperList)
+        # for subtamperer in entity.modifyEntityObject.tamperList:
+        #     entity.modifyEntityObject = subtamperer
+        #     modifier(entity)
+        modifier(entity)
         for subTrigger in trigger:
             feedbackGuy(entity, subTrigger)
     contextMan(entity)
@@ -308,7 +345,7 @@ def activateCall(entity, trigger):
                 "func": "break"
             }
     '''
-    # print(f" > {entity} >> {helpers.textColor('yellow', trigger)}")
+    printer(f" > {entity} >> {helpers.textColor('yellow', trigger)}")
     conditionmap = []
     try:
         effect = entity.effect
@@ -322,13 +359,16 @@ def activateCall(entity, trigger):
                 return False
             elif type(condition['trigger']) is str and (trigger != condition['trigger']):
                 return False
-        if condition['method'] == 'autotrue':
-            return True
-        if condition['method'] == 'monad':
-            if entity == entity.target:
+        try:
+            if condition['method'] == 'autotrue':
                 return True
-            else:
-                return False
+            if condition['method'] == 'monad':
+                if entity == entity.target:
+                    return True
+                else:
+                    return False
+        except KeyError:
+            pass
         return helpers.valueCheck(entity, condition, director, index)
     def effectCycler():
         for effectIndex in effect['effect']:
@@ -355,7 +395,7 @@ def activateCall(entity, trigger):
             for boolean, condition in effectIndex['condition'].items():
                 digitalBoolean = helpers.bool(boolean)
                 # True: 0
-                if type(condition) == int and (inner_check(condition, digitalBoolean)):
+                if type(condition) == int and(inner_check(condition, digitalBoolean)):
                     flag = False
                     break
                 elif type(condition) == list:
@@ -370,12 +410,11 @@ def activateCall(entity, trigger):
                 if not flag:
                     break
             if flag:
-                if effectIndex['func'] == 'break':
-                    return False
                 if toggler == 2:
                     print('   ', helpers.textColor(
                         'purple', effectIndex['condition']), helpers.textColor('green', effectIndex))
-                activate(entity, effectIndex, effect)
+                if activate(entity, effectIndex, effect) == 'break':
+                    return False
             else:
                 if toggler == 2:
                     print('   ',helpers.textColor(
@@ -384,7 +423,8 @@ def activateCall(entity, trigger):
         except KeyError:
             if toggler == 2:
                 print('   no condition', helpers.textColor('green', effectIndex))
-            activate(entity, effectIndex, effect)
+            if activate(entity, effectIndex, effect) == 'break':
+                return False
     effectCycler()
     printer('____ exit activate call')
 
@@ -418,11 +458,14 @@ def activate(entity, effectIndex, effect):
     def caller(function, **kwargs):
         try:
             if subparamIndex and function == 'modifyEntity' and negator(kwargs['entity'], kwargs['script']['trigger']):
+                # negated
                 return False
         except KeyError:
             pass
-        globals()[function](**kwargs)
-        return True
+        if globals()[function](**kwargs) == 'break':
+            return 'break'
+        else:
+            return True
     def actuator(param):
         try:
             if 'dynamic' in param['modifiers']:
@@ -460,22 +503,20 @@ def activate(entity, effectIndex, effect):
         target = [helpers.acquire_target(entity, x, director) for x in effect['target']]
     try:
         param = helpers.deepcopy(effectIndex['param'])
-        if 'subparam' in param:
-            for index, subparam in enumerate(param['subparam']):
-                try:
-                    subparam.update({'trigger': effectIndex['param']['trigger']})
-                except KeyError:
-                    pass
+        if type(param) == list:
+            for index, subparam in enumerate(param):
                 subparam.update({"origin": entity})
                 if index != 0:
                     subparamIndex = False
                 flag = actuator(subparam)
                 if index == 0 and not flag:
                     break
+                if flag == 'break':
+                    return 'break'
         else:
             param.update({"origin": entity})
-            actuator(param)
-
+            if actuator(param) == 'break':
+                return 'break'
     except KeyError:
         caller(effectIndex['func'])
     printer('____exit activate effect')

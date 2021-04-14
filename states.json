@@ -1,16 +1,52 @@
 {
-	"select defend undo": {
+	"entity battle": {
 		"condition": [
 			{
-				"trigger": "pass dselect",
-				"method": "autotrue"
+				"method": "autotrue",
+				"trigger": "entity battle"
+			}
+		],
+		"target": [
+			{
+				"shorthand": "target"
+			},
+			{
+				"shorthand": "target",
+				"attribute": "defender"
 			}],
 		"effect": [
 			{
-				"func": "modifyState",
-				"param": {"state": "defender setup"}
+				"func": "modifyEntity",
+				"param":{
+					"target": [0],
+					"attribute": "striketarget",
+					"method": "set",
+					"value_pointer": 1}
+			},
+			{
+				"func": "modifyEntity",
+				"param":{
+					"target": [1],
+					"attribute": "striketarget",
+					"method": "set",
+					"value_pointer": 0}
+			},
+			{
+				"func": "callFeedbackGuy",
+				"param":{
+					"target": [0],
+					"trigger": "strike"
+					}
+			},
+			{
+				"func": "callFeedbackGuy",
+				"param":{
+					"target": [1],
+					"trigger": "strike"
+					}
 			}
 		]
+
 	},
 	"resolve battle": {
 		"target": [
@@ -158,13 +194,6 @@
 			{
 				"trigger": "defend",
 				"method": "autotrue"
-			},
-			{
-				"method": "valCompare",
-				"a": "cue",
-				"a_attri": "command",
-				"value": "pass dselect",
-				"operator": "="
 			}],
 			"target": [
 					{
@@ -178,8 +207,16 @@
 							}}
 					},
 					{
-						"shorthand": "producer.inputEntityLast"
-					},
+	          "shorthand": "this"
+	        },
+	        {
+	          "shorthand": "this",
+	          "attribute": "selection"
+	        },
+					{
+	          "shorthand": "this",
+	          "attribute": "prevSelection"
+	        },
 					{
 						"filter":  {
 							"modifiers": ["dynamic"],
@@ -189,9 +226,6 @@
 								"location": "battlers",
 								"type": "Unit"
 							}}
-					},
-					{
-						"shorthand": "producer.inputEntity"
 					}],
 		"effect": [
 			{
@@ -202,7 +236,7 @@
 			{
 			"func": "addStack",
 			"param": {
-					"target": ["pass dselect"],
+					"target": ["break"],
 					"stack": "options"}
 			},
 			{
@@ -211,17 +245,17 @@
 					"target": [0],
 					"stack": "options"}
 			},
+
 			{
 			"func": "printStack",
 			"param": {
 					"stack": "options"}
 			},
 			{
-			"func": "getInput"
-			},
-			{
-			"condition": {"True": 1},
-			"func": "break"
+				"func": "getInput",
+				"param": {
+					"target": [1]
+				}
 			},
 			{
 			"func": "resetStack",
@@ -231,13 +265,13 @@
 			{
 			"func": "addStack",
 			"param": {
-					"target": [2],
+					"target": ["break"],
 					"stack": "options"}
 			},
 			{
 			"func": "addStack",
 			"param": {
-					"target": ["pass dselect"],
+					"target": [4],
 					"stack": "options"}
 			},
 			{
@@ -246,39 +280,38 @@
 					"stack": "options"}
 			},
 			{
-			"func": "getInput"
-			},
-			{
-			"condition": {"True": 1},
-			"func": "break"
+				"func": "getInput",
+				"param": {
+					"target": [1]
+				}
 			},
 			{
 				"func": "modifyEntity",
 				"param":{
-					"target": [1],
+					"target": [3],
 					"attribute": "todefend",
 					"method": "set",
-					"value_pointer": 3}
+					"value_pointer": 2}
 			},
 			{
 			"func": "modifyEntity",
-			"param":{
-				"trigger": "set defender",
-				"subparam": [
+			"param": [
 					{
-						"target": [1],
+						"trigger": "set defender",
+						"target": [3],
 						"attribute": "location",
 						"method": "set",
 						"value": "battlers"
 					},
 					{
-						"target": [3],
+						"trigger": "set defender",
+						"target": [2],
 						"attribute": "defender",
 						"method": "set",
-						"value_pointer": 1
+						"value_pointer": 3
 					}
 				]
-			}}
+			}
 		]
 	},
 	"set attack": {
@@ -286,13 +319,6 @@
 			{
 				"trigger": "attack",
 				"method": "autotrue"
-			},
-			{
-				"method": "valCompare",
-				"a": "cue",
-				"a_attri": "command",
-				"value": "pass aselect",
-				"operator": "="
 			}],
 			"target": [
 					{
@@ -306,8 +332,12 @@
 							}}
 					},
 					{
-						"shorthand": "producer.inputEntity"
-					}],
+	          "shorthand": "this"
+	        },
+	        {
+	          "shorthand": "this",
+	          "attribute": "selection"
+	        }],
 		"effect": [
 			{
 			"func": "resetStack",
@@ -317,7 +347,7 @@
 			{
 			"func": "addStack",
 			"param": {
-					"target": ["pass aselect"],
+					"target": ["break"],
 					"stack": "options"}
 			},
 			{
@@ -333,17 +363,16 @@
 					"stack": "options"}
 			},
 			{
-			"func": "getInput"
-			},
-			{
-			"condition": {"True": 1},
-			"func": "break"
+				"func": "getInput",
+				"param": {
+					"target": [1]
+				}
 			},
 			{
 			"func": "modifyEntity",
 			"param":{
 				"trigger": "set to battle",
-				"target": [1],
+				"target": [2],
 				"attribute": "location",
 				"method": "set",
 				"value": "battlers"
@@ -369,8 +398,12 @@
 							}}
 					},
 					{
-						"shorthand": "producer.inputEntity"
-					}],
+	          "shorthand": "this"
+	        },
+	        {
+	          "shorthand": "this",
+	          "attribute": "selection"
+	        }],
 		"effect": [
 			{
 			"func": "resetStack",
@@ -390,12 +423,15 @@
 					"stack": "options"}
 			},
 			{
-			"func": "getInput"
+				"func": "getInput",
+				"param": {
+					"target": [1]
+				}
 			},
 			{
 			"func": "modifyEntity",
 			"param":{
-				"target": [1],
+				"target": [2],
 				"attribute": "location",
 				"method": "set",
 				"value": "board"
@@ -403,7 +439,7 @@
 			}
 		]
 	},
-	"unset retreat": {
+	"unset defend": {
 		"condition": [
 			{
 				"trigger": "undefend",
@@ -421,8 +457,12 @@
 							}}
 					},
 					{
-						"shorthand": "producer.inputEntity"
-					}],
+	          "shorthand": "this"
+	        },
+	        {
+	          "shorthand": "this",
+	          "attribute": "selection"
+	        }],
 		"effect": [
 			{
 			"func": "resetStack",
@@ -442,12 +482,15 @@
 					"stack": "options"}
 			},
 			{
-			"func": "getInput"
+				"func": "getInput",
+				"param": {
+					"target": [1]
+				}
 			},
 			{
 			"func": "modifyEntity",
 			"param":{
-				"target": [1],
+				"target": [2],
 				"attribute": "location",
 				"method": "set",
 				"value": "board"
@@ -605,19 +648,10 @@
 			{
 			"func": "modifyEntity",
 			"param":{
+				"trigger": "set player from natural turn",
 				"modifiers": ["dynamic"],
 				"target": [0],
 				"attribute": "naturalturn",
-				"method": "set",
-				"value": "producer.roundturn"
-				}
-			},
-			{
-			"func": "modifyEntity",
-			"param":{
-				"modifiers": ["dynamic"],
-				"target": [0],
-				"attribute": "player",
 				"method": "set",
 				"value": "producer.roundturn"
 				}
@@ -742,6 +776,12 @@
 				"value": 0,
 				"operator": ">"}
 			],
+		"target": [
+			{
+				"shorthand": "producer",
+				"attribute": "state"
+			}
+		],
 		"effect": [
 			{"func": "resetStack",
 			"param": {"stack": "options"}},
@@ -763,26 +803,30 @@
 			"param": {"stack": "options"}
 			},
 			{
-			"func": "getInput"
+				"func": "getInput",
+				"param": {
+					"target": [0]
+				}
 			}
 			]
 		},
 	"respond": {
-		"condition": [{
-			"trigger": "respond",
-			"method": "autotrue"
+		"condition": [
+			{
+				"trigger": "respond",
+				"method": "autotrue"
 			},
 			{
 				"method": "valCompare",
-				"a": "producer",
-				"a_attri": "inputEntity.spellSpeed",
+				"a": "this",
+				"a_attri": "selection.spellSpeed",
 				"value": ["Burst", "Focus"],
 				"operator": "in"
 			},
 			{
 				"method": "valCompare",
-				"a": "producer",
-				"a_attri": "inputEntity.spellSpeed",
+				"a": "this",
+				"a_attri": "selection.spellSpeed",
 				"value": "Fast",
 				"operator": "="
 			},
@@ -812,14 +856,18 @@
 			    }},
 			"automatic": "yes"},
 			{
-				"shorthand": "producer.inputEntity",
-				"automatic": "yes"},
+				"shorthand": "this",
+				"attribute": "selection"
+			},
 			{
 				"shorthand": "producer"
 			},
 			{
 				"shorthand": "producer",
 				"stack": "spellStack"
+			},
+			{
+				"shorthand": "this"
 			}
 		],
 		"effect": [
@@ -834,7 +882,12 @@
 			{"func": "printStack",
 			"param": {"stack": "options"}
 			},
-			{"func": "getInput"},
+			{
+				"func": "getInput",
+				"param": {
+					"target": [4]
+				}
+			},
 			{
 			"condition": {"True": 1},
 			"func": "modifyEntity",
@@ -880,7 +933,6 @@
 				"func": "modifyEntity",
 				"param":{
 					"target": [2],
-					"trigger": "changePlayer",
 					"attribute": "player",
 					"method": "cycle",
 					"value": ["oppo", "self"]
@@ -977,22 +1029,22 @@
 			},
 			{
 				"method": "valCompare",
-				"a": "producer",
-				"a_attri": "inputEntity.type",
+				"a": "this",
+				"a_attri": "selection.type",
 				"value": "Unit",
 				"operator": "="
 			},
 			{
 				"method": "valCompare",
-				"a": "producer",
-				"a_attri": "inputEntity.spellSpeed",
+				"a": "this",
+				"a_attri": "selection.spellSpeed",
 				"value": ["Burst", "Focus"],
 				"operator": "in"
 			},
 			{
 				"method": "valCompare",
-				"a": "producer",
-				"a_attri": "inputEntity.spellSpeed",
+				"a": "this",
+				"a_attri": "selection.spellSpeed",
 				"value": ["Slow", "Fast"],
 				"operator": "in"
 			},
@@ -1021,60 +1073,71 @@
 			    }},
 			"automatic": "yes"},
 			{
-				"shorthand": "producer.inputEntity",
-				"automatic": "yes"},
+				"shorthand": "this",
+				"attribute": "selection"
+			},
 			{
-				"shorthand": "producer",
-				"automatic": "yes"}
+				"shorthand": "this"
+			},
+			{
+				"shorthand": "producer"
+			}
 		],
 		"effect": [
 
-			{"func": "resetStack",
-			"param": {"stack": "options"}},
-			{"func": "addStack",
-			"param": {
-				"target": [0],
-				"stack": "options"}
+			{
+				"func": "resetStack",
+				"param": {"stack": "options"}},
+			{
+				"func": "addStack",
+				"param": {
+					"target": [0],
+					"stack": "options"}
 			},
 			{"func": "printStack",
 			"param": {"stack": "options"}
 			},
-			{"func": "getInput"},
 			{
-			"condition": {"True": 2},
-			"func": "modifyEntity",
-			"param":{
-				"target": [1],
-				"attribute": "location",
-				"method": "set",
-				"value": "graveyard"
+				"func": "getInput",
+				"param": {
+					"target": [2]
 				}
 			},
 			{
-			"condition": {"True": 2},
-			"func": "activateEntity",
-			"param":{
-				"target": [1],
-				"trigger": "activateSpell"
-				}
+				"condition": {"True": 2},
+				"func": "modifyEntity",
+				"param":{
+					"target": [1],
+					"attribute": "location",
+					"method": "set",
+					"value": "graveyard"
+					}
 			},
 			{
-			"condition": {"True": 1},
-			"func": "activateEntity",
-			"param":{
-				"target": [1],
-				"trigger": "battlecrySummon"
-				}
+				"condition": {"True": 2},
+				"func": "activateEntity",
+				"param":{
+					"target": [1],
+					"trigger": "activateSpell"
+					}
 			},
 			{
-			"condition": {"True": 3},
-			"func": "modifyEntity",
-			"param":{
-				"target": [1],
-				"attribute": "location",
-				"method": "set",
-				"value": "spellStack"
-				}
+				"condition": {"True": 1},
+				"func": "activateEntity",
+				"param":{
+					"target": [1],
+					"trigger": "battlecrySummon"
+					}
+			},
+			{
+				"condition": {"True": 3},
+				"func": "modifyEntity",
+				"param":{
+					"target": [1],
+					"attribute": "location",
+					"method": "set",
+					"value": "spellStack"
+					}
 			},
 			{
 				"condition": {"True": 3},
@@ -1090,11 +1153,10 @@
 				"param": {"stack": "spellStack"}
 			},
 			{
-				"condition": {"True": [[1, 3]]},
+				"condition": {"True": [[1, 3], 4]},
 				"func": "modifyEntity",
 				"param":{
-					"target": [2],
-					"trigger": "changePlayer",
+					"target": [3],
 					"attribute": "player",
 					"method": "cycle",
 					"value": ["oppo", "self"]
@@ -1106,8 +1168,11 @@
 				"param": {"state": "b"}
 			},
 			{
-				"condition": {"True": [[1, 3]], "False": 4},
-				"func": "testFunc"
+				"condition": {"True": [1, 3], "False": 4},
+				"func": "callFeedbackGuy",
+				"param":{
+					"trigger": "pass respond"
+					}
 			}
 			]
 		},

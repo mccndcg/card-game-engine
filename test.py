@@ -1,10 +1,10 @@
-class test(object):
-    def __init__(self):
-        self.a = 1
-        self.original_ = 2
+from dataclasses import dataclass
 
-x = test()
-print([y for y in vars(x).keys() if y[:3] == 'ori'])
-print(dict(filter(lambda x: x[0][:3] == 'ori', vars(x))))
-x = 'create test'
-print(x[7:])
+@dataclass
+class Test():
+    pass
+
+x = Test()
+x.a = Test()
+x.a.a = 5
+print(x.a.a)

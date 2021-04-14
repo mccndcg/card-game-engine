@@ -57,13 +57,13 @@ def valueCheck(entity, reqt, director, idx):
         except TypeError:
             # ex: compare 1(int) and graveyard(str)
             return False
-    def contextMan(method):
+    def contextMan():
         if toggler == 2:
             try:
                 print(entity, entity.target, reqt['a'], reqt['a_attri'])
             except AttributeError:
                 print('error')
-        return actuator(getA(method, reqt['a'], reqt['a_attri']), getC(method))
+        return actuator(getA(reqt['a'], reqt['a_attri']), getC())
     def get_entity(targetString):
         entityTarget = deepcopy(targetString)
         try:
@@ -85,7 +85,7 @@ def valueCheck(entity, reqt, director, idx):
         attribs = attributeString.split('.')
         attribs.insert(0, target)
         return reduce(getter, attribs)
-    def getA(method, reqtEntity, reqtAttri):
+    def getA(reqtEntity, reqtAttri):
         a = get_entity(reqtEntity)
         if reqtAttri == 'count':
             a = len(a)
@@ -97,28 +97,27 @@ def valueCheck(entity, reqt, director, idx):
             except TypeError:
                 pass
             try:
-                if method == 'valCompare':
-                    a = subparser(reqtAttri, a)
-            # ex 1
+                a = subparser(reqtAttri, a)
             except AttributeError:
-                printer(textColor('purple', idx), textColor('red', 'conditions fail'), 'no attribute', reqtAttri)
+                if toggler == 2:
+                    print(textColor('purple', idx), textColor('red', 'conditions fail'), 'no attribute', reqtAttri)
                 return False
         return a
-    def getC(method):
+    def getC():
         # B is value
         try:
             if reqt['value'] == 'this':
                 c = entity
-            elif method == 'valCompare':
+            else:
                 c = reqt['value']
         # B is entity
         except KeyError:
-            c = getA(method, reqt['b'], reqt['b_attri'])
+            c = getA(reqt['b'], reqt['b_attri'])
         except AttributeError:
             printer(textColor('purple', idx), textColor('red', 'conditions fail'), 'no attribute', reqt['value'])
             return False
         return c
-    return contextMan(reqt['method'])
+    return contextMan()
 
 
 def preFilter(filters, entity, director):
@@ -225,6 +224,7 @@ def parse(param, target, entity, director):
     Converts static text pointers {target#0} in param to dynamic values.
     '''
     def subparser(attributeString):
+
         getter = lambda a, b: getattr(a, b)
         targ = attributeString.split('.')
         a = string2entity(entity, targ[0], director)
@@ -233,6 +233,8 @@ def parse(param, target, entity, director):
         else:
             targ[0] = target[int(targ[0])]
         return reduce(getter, targ)
+
+
     def walker(parent, index, entity):
         if type(entity) is dict:
             for k, v in entity.items():

@@ -1,3 +1,54 @@
 {
-  
+  "03PZ018": {
+    "target": [
+        {
+          "filter":  {
+            "modifiers": ["dynamic"],
+            "entity": "card",
+            "conditions": {
+              "owner": "producer.player",
+              "location": "board",
+              "type": "Unit"
+            }}
+        },
+        {
+          "shorthand": "this"
+        },
+        {
+          "shorthand": "this",
+          "attribute": "selection"
+        }],
+    "effect": [
+      {
+			"func": "resetStack",
+			"param": {
+					"stack": "options"}
+			},
+      {
+			"condition": {"True": 0},
+			"func": "addStack",
+			"param": {
+					"target": [0],
+					"stack": "options"}
+			},
+			{
+			"func": "printStack",
+			"param": {
+					"stack": "options"}
+			},
+      {
+				"func": "getInput",
+				"param": {
+					"target": [1]
+				}
+			},
+      {
+			"func": "modifyEntity",
+			"param": {
+        "target": [2],
+        "attribute": "health",
+        "method": "add",
+        "value": 1}}
+    ]
+  }
 }
